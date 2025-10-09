@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define FILE_ERROR 3
 #define INPUT_ERROR 4
@@ -30,7 +31,19 @@ struct route_s {
     int delay;
 };
 
+typedef enum comando_e comando;
+enum comando_e {
+	r_date, r_partenza, r_capolinea, r_ritardo, r_ritardo_tot, r_fine
+};
+
 void printRoute(Route* route);
+comando leggiComando();
+void selezionaDati(Route* routes, comando e);
+void printDateInterval(Route* routes, Date start, Date end);
+void printDeparture(Route* routes, char* station);
+void printArrival(Route* routes, char* station);
+void printDelay(Route* routes, Date start, Date end, int tot_delay);
+void printTotalDelay(Route* routes, char* code);
 
 int main(){
 	FILE* fin, *fout;
@@ -74,9 +87,63 @@ int main(){
     	}
     }
 
+	printf("Digitare l'operazione desiderata:\n"
+		"\t1. elencare tutte le corse partite in un certo intervallo di date <date>\n"
+		"\t2. elencare tutti le corse partite da una certa fermata <partenza>\n"
+		"\t3. elencare tutti le corse che fanno capolinea in una certa fermata <capolinea>\n"
+		"\t4. elencare tutte le corse che hanno raggiunto la destinazione in ritardo in un certo intervallo di date <ritardo>\n"
+		"\t5. elencare il ritardo complessivo accumulato dalle corse identificate da un certo codice di tratta <ritardo_tot>\n"
+		"\t6. esci <fine>\n"
+		">> "
+	);
 
+	selezionaDati(routes, leggiComando());
 
+	fclose(fin);
+	fclose(fout);
 	return 0;
+}
+comando leggiComando() {
+	char str[30];
+	for (;;) {
+		scanf(" %s", str);
+		if (strcmp(str, "date") == 0) return r_date;
+		if (strcmp(str, "partenza") == 0) return r_partenza;
+		if (strcmp(str, "capolinea") == 0) return r_capolinea;
+		if (strcmp(str, "ritardo") == 0) return r_ritardo;
+		if (strcmp(str, "ritardo_tot") == 0) return r_ritardo_tot;
+		if (strcmp(str, "fine") == 0) return r_fine;
+
+		printf("Comando errato o sconosciuto, riprovare: ");
+	}
+}
+
+void selezionaDati(Route* routes, comando e) {
+	while (1) {
+		switch (e) {
+			case r_date:
+				printDateInterval(routes, start, end);
+			break;
+			case r_partenza:
+				printDeparture(routes, station);
+			break;
+			case r_capolinea:
+				printArrival(routes, station);
+			break;
+			case r_ritardo:
+				printDelay(routes, start,  end, tot_delay);
+			break;
+			case r_ritardo_tot:
+				printTotalDelay(routes, code);
+			break;
+			case r_fine:
+				printf("\t---\texiting program\t---\n");
+				return;
+			default:
+				printf("An unexpected error occurred, terminating ...\n");
+				return ;
+		}
+	}
 }
 
 void printRoute(Route* route){

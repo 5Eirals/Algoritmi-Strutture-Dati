@@ -12,8 +12,13 @@ int cercaRegexp(char* src, char* regexp);
 int regexSize(char* str);
 
 int main(){
-	char* src = "ecco la Foto che mi hai richiEsto";
-    char* regexp = "r\\a.[^ijk][aeiou]\\A\\a[rst]o";
+	char src [100];
+    char* regexp;
+
+	printf("Type the source string: \n");
+	gets(src);
+	printf("Type the regex string:");
+	scanf("%s", regexp);
 
 	printf("src: %s \n\tregex: %s\n", src, regexp);
     int result = cercaRegexp(src, regexp);
