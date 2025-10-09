@@ -12,8 +12,8 @@ int cercaRegexp(char* src, char* regexp);
 int regexSize(char* str);
 
 int main(){
-	char* src = "moto foto roto";
-    char* regexp = "[^fmp]oto";
+	char* src = "ecco la Foto che mi hai richiEsto";
+    char* regexp = "r\\a.[^ijk][aeiou]\\A\\a[rst]o";
 
 	printf("src: %s \n\tregex: %s\n", src, regexp);
     int result = cercaRegexp(src, regexp);
@@ -54,9 +54,9 @@ int cercaRegexp(char* src, char* regexp) {
 
 	for (index = 0; src_len - index + 1 != regex_len; index++) {
 		int valid = 1;
-		int i = index; //
+		int i = index; //working src index for inner loop
 		while (regexp[regx_i] != '\0' && valid) {
-			switch (regexp[regx_i]) {
+			switch (regexp[regx_i]) { //switch-case to check metacharacters
 				case '.':
 					break;
 				case '[':
@@ -66,16 +66,18 @@ int cercaRegexp(char* src, char* regexp) {
 						regx_i++;
 						while (regexp[regx_i+j] != ']') {
 							if (regexp[regx_i+j] == src[i+regx_i] && valid) {
-								valid = 0;
+								valid = 0; // if a match is found within the exclusion list change the valid flag
+								// keep looping to exit the parenthesis and correctly update regx_i
 							}
 							j++;
 						}
 						regx_i += j;
 					} else {
-						valid = 0;
+						valid = 0; // set failing condition by default
 						while (regexp[regx_i+j] != ']') {
 							if (regexp[regx_i+j] == src[i]) {
-								valid = 1;
+								valid = 1; //if at least a match is found within the list change the valid flag
+								// keep looping to exit the parenthesis and correctly update regx_i
 							}
 							j++;
 						}
@@ -85,24 +87,24 @@ int cercaRegexp(char* src, char* regexp) {
 					break;
 				case '\\':
 					regx_i++;
-					if (regexp[regx_i] == 'a' && ('a' > src[i] || src[i] > 'z'))
+					if (regexp[regx_i] == 'a' && ('a' > src[i] || src[i] > 'z')) //check lowercase
 						valid = 0;
-					if (regexp[regx_i] == 'A' && ('A' > src[i] || src[i] > 'Z'))
+					if (regexp[regx_i] == 'A' && ('A' > src[i] || src[i] > 'Z')) //check uppercase
 						valid = 0;
 					break;
 				default:
-					if (regexp[regx_i] != src[i])
+					if (regexp[regx_i] != src[i]) // check character by character
 						valid = 0;
 					break;
 			}
 
 			regx_i++;
-			i++;
+			i++; // increment the working index without altering the starting index
 		}
 
 		regx_i = 0;
 		if (valid) {
-			return index;
+			return index; // if during the regex check a fail condition isn't triggered return the starting index
 		}
 	}
 
