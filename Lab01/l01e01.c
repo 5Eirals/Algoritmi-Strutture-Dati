@@ -9,12 +9,11 @@
 #include <string.h>
 
 int cercaRegexp(char* src, char* regexp);
-int windowSize(char* str);
-int checkMeta(char c, char* regexp, int* regex_index);
+int regexSize(char* str);
 
 int main(){
-	char* src = "hello world";
-    char* regexp = ".\\a[pqr]ld";
+	char* src = "moto foto roto";
+    char* regexp = "[^fmp]oto";
 
 	printf("src: %s \n\tregex: %s\n", src, regexp);
     int result = cercaRegexp(src, regexp);
@@ -22,93 +21,90 @@ int main(){
     if (result < 0){
     	printf("Regex not found\n");
     } else {
-    	printf("Regex found form index: %d = %c\n", result, src[result]);
+    	printf("Regex found form index: %d", result);
     }
 	return 0;
 }
 
-int checkMeta(char c, char* regexp, int* regex_index){
-	printf("\nInside checkMeta, index: %d\n", *regex_index);
-	if(regexp[*regex_index] == '.') {
-		*regex_index = *regex_index + 1;
-		return 1;
+int regexSize(char* str){
+	int size = strlen(str);
+	char* ptr, *start = str;
+	start = str;
+	while((ptr = strchr(start, '\\')) != NULL){
+		size--; // either \a or \A since src is alphanumerical
+		start = ptr + 1;
 	}
-	if(regexp[*regex_index++] == '\\') {
-		if (regexp[*regex_index++] == 'a' && 'a'-1 < c && c < 'z'+1)
-			return 1;
-		if (regexp[*regex_index++] == 'A' && 'A'-1 < c && c < 'Z'+1)
-			return 1;
+
+	start = str;
+	while((ptr = strchr(start, '[')) != NULL){
+		char* ptrf;
+		if((ptrf = strchr(start, ']')) != NULL){
+			size =  size - (ptrf-ptr);
+			// considering src as alphanumerical the only occurrence of [] is for a metacharacter
+			start = ptrf + 1;
+		}
 	}
-	if(regexp[*regex_index++] == '[') {
-		if(regexp[*regex_index++] == '^') {
-			while (regexp[*regex_index] != ']') {
-				if (regexp[*regex_index++] == c)
-					return 0;
+	return size-1;
+}
+
+int cercaRegexp(char* src, char* regexp) {
+	int index = 0, regx_i = 0;
+	int src_len = strlen(src);
+	int regex_len = regexSize(regexp);
+
+	for (index = 0; src_len - index + 1 != regex_len; index++) {
+		int valid = 1;
+		int i = index; //
+		while (regexp[regx_i] != '\0' && valid) {
+			switch (regexp[regx_i]) {
+				case '.':
+					break;
+				case '[':
+					regx_i++;
+					int j = 0;
+					if (regexp[regx_i] == '^') {
+						regx_i++;
+						while (regexp[regx_i+j] != ']') {
+							if (regexp[regx_i+j] == src[i+regx_i] && valid) {
+								valid = 0;
+							}
+							j++;
+						}
+						regx_i += j;
+					} else {
+						valid = 0;
+						while (regexp[regx_i+j] != ']') {
+							if (regexp[regx_i+j] == src[i]) {
+								valid = 1;
+							}
+							j++;
+						}
+
+						regx_i += j;
+					}
+					break;
+				case '\\':
+					regx_i++;
+					if (regexp[regx_i] == 'a' && ('a' > src[i] || src[i] > 'z'))
+						valid = 0;
+					if (regexp[regx_i] == 'A' && ('A' > src[i] || src[i] > 'Z'))
+						valid = 0;
+					break;
+				default:
+					if (regexp[regx_i] != src[i])
+						valid = 0;
+					break;
 			}
-		} else {
-			while (regexp[*regex_index] != ']') {
-				if (regexp[*regex_index++] == c)
-					return 1;
-			}
+
+			regx_i++;
+			i++;
+		}
+
+		regx_i = 0;
+		if (valid) {
+			return index;
 		}
 	}
 
-	if(regexp[*regex_index++] == c)
-		return 1;
-    return 0;
+	return -1;
 }
-
-int cercaRegexp(char* src, char* regexp){
-	int i;
-	int flag = 1;
-    for(i = 0; i < strlen(src) || flag == 0; i++){
-        for(int j = 0; regexp[j] != '\0' || flag;){
-			flag = 0;
-        	printf("Inside for, checking: %c\n", regexp[j]);
-        	//traduci come switch
-        	if(regexp[j++] == '.'){
-        		continue;
-        	}
-        	if(regexp[j++] == '\\') {
-        		if (regexp[j++] == 'a' && !('a'-1 < src[i] && src[i] < 'z'+1)) {
-					flag = 1;
-        			break;
-        		}
-        		if (regexp[j++] == 'A' && !('A'-1 < src[i] && src[i] < 'Z'+1)) {
-					flag = 1;
-        			break;
-        		}
-        	}
-        	if(regexp[j++] == '[') {
-        		if(regexp[j++] == '^') {
-        			while (regexp[j++] != ']') {
-        				if (regexp[j++] == src[i]) {
-        					flag = 1;
-        				}
-        			}
-        			break;
-        		} else {
-        			while (regexp[j++] != ']') {
-        				flag = 1;
-        				if (regexp[j++] == src[i]) {
-        					flag = 0;
-        					break;
-        				}
-        			}
-        			break;
-        		}
-        	}
-
-        	if(regexp[j++] != src[i]) {
-        		flag = 1;
-        		break;
-        	}
-        }
-    }
-    if (flag) {
-	    return -1;
-    } else {
-	    return i;
-    }
-}
-
