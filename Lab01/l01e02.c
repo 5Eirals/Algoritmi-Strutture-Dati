@@ -141,8 +141,15 @@ int monthToDays(int month) {
 }
 
 int compareDates (Date d1, Date d2) {
-	int tot_days_1 = d1.yy * 365 + d1.yy%4 - d1.yy%400 + monthToDays(d1.mm) + d1.dd;
-	int tot_days_2 = d2.yy * 365 + d2.yy%4 - d2.yy%400 + monthToDays(d2.mm) + d2.dd;
+	int tot_days_1 = d1.yy * 365 + d1.yy%4 - d1.yy%400 + d1.dd;
+	int tot_days_2 = d2.yy * 365 + d2.yy%4 - d2.yy%400 + d2.dd;
+
+	for (int m = 1; m <= d1.mm; m++) {
+		tot_days_1 += monthToDays(m);
+	}
+	for (int m = 1; m <= d2.mm; m++) {
+		tot_days_2 += monthToDays(m);
+	}
 
 	return tot_days_1 - tot_days_2;
 }

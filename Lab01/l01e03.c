@@ -48,16 +48,17 @@ int compareTime(Time t1, Time t2);
 int compareDates(Date d1, Date d2);
 void printDate(Date d);
 void printRoute(Route route);
+void fprintRoute(Route route, FILE* file);
 
 comando leggiComando();
-boolean selezionaDati(Log* routes, comando e);
+boolean selezionaDati(Log* routes, comando e, FILE* file);
 
-void MergeDates(Route* listA, Route* listB, int len);
-void MergeStrings(Route* listA, Route* listB, int len);
-void MergeSortDates(Route* list, int len, int left, int right);
-void MergeSortStrings(Route* list, int len, int left, int right);
+void MergeDates(Route* list, Route* holder, int left, int middle, int right);
+void MergeCode(Route* list, Route* holder, int left, int middle, int right);
+void MergeSortDates(Route* list, Route* holder, int len, int left, int right);
+void MergeSortCode(Route* list, Route* holder, int len, int left, int right);
 
-void printLog(Log routes, boolean toFIle);
+void printLog(Log routes, boolean toFIle, FILE* file);
 void sortDate(Log* routes);
 void sortCode(Log* routes);
 void sortDeparture(Log* routes);
@@ -76,10 +77,9 @@ int main(){
     	printf("An error occurred during input-file opening, terminating\n");
         return FILE_ERROR;
     }
-
 	if((fout = fopen("output.txt", "w")) == NULL){
-		printf("An error occurred during input-file opening, terminating\n");
-		return FILE_ERROR;
+		printf("An error occurred during output-file opening, aborting\n");
+		return;
 	}
 
     if(fscanf(fin, " %d ", &N) != 1){
@@ -113,12 +113,12 @@ int main(){
 
 	log.list = routes;
 
-	while (selezionaDati(&log, leggiComando())) {}
+	while (selezionaDati(&log, leggiComando(), fout)) {}
 
 	fclose(fin);
-	fclose(fout);
 	return 0;
 }
+
 comando leggiComando() {
 	char str[30];
 
@@ -128,7 +128,7 @@ comando leggiComando() {
 		"\t3. ordinamento del vettore per codice di tratta <codice>\n"
 		"\t4. ordinamento del vettore per stazione di partenza <partenza>\n"
 		"\t5. ordinamento del vettore per stazione di arrivo <arrivo>\n"
-        "\t6. ricerca di trattaa per codice <cerca_c>\n"
+        "\t6. ricerca di tratta per codice <cerca_c>\n"
         "\t7. ricerca di tratta per stazione di partenza <cerca_p>\n"
 		"\t8. esci <fine>\n"
 		">> "
@@ -136,6 +136,7 @@ comando leggiComando() {
 
 	for (;;) {
 		scanf(" %s", str);
+		if (strcmp(str, "stampa") == 0) return r_stampa;
 		if (strcmp(str, "tempo") == 0) return r_tempo;
 		if (strcmp(str, "codice") == 0) return r_codice;
 		if (strcmp(str, "partenza") == 0) return r_partenza;
@@ -160,13 +161,20 @@ int monthToDays(int month) {
 		case 1: case 3: case 5: case 7: case 8: case 10: case 12: return 31;
 		case 4: case 6: case 9: case 11: return 30;
 		case 2: return 28;
-		default: printf("Error date format \n"); return -1;
+		default: printf("Error date format month:%d \n", month); return -1;
 	}
 }
 
 int compareDates (Date d1, Date d2) {
-	int tot_days_1 = d1.yy * 365 + d1.yy%4 - d1.yy%400 + monthToDays(d1.mm) + d1.dd;
-	int tot_days_2 = d2.yy * 365 + d2.yy%4 - d2.yy%400 + monthToDays(d2.mm) + d2.dd;
+	int tot_days_1 = d1.yy * 365 + d1.yy%4 - d1.yy%400 + d1.dd;
+	int tot_days_2 = d2.yy * 365 + d2.yy%4 - d2.yy%400 + d2.dd;
+
+	for (int m = 1; m <= d1.mm; m++) {
+		tot_days_1 += monthToDays(m);
+	}
+	for (int m = 1; m <= d2.mm; m++) {
+		tot_days_2 += monthToDays(m);
+	}
 
 	return tot_days_1 - tot_days_2;
 }
@@ -193,6 +201,24 @@ void printRoute(Route route){
     return;
 }
 
+void fprintRoute(Route route, FILE* file){
+	fprintf(file, "%s %s - %s %04d/%02d/%02d\n\tdeparture - %02d:%02d:%02d\n\tarrival - %02d:%02d:%02d\n\tdelay: %02d\n\n",
+		 route.route_id,
+		 route.start,
+		 route.end,
+		 route.date.yy,
+		 route.date.mm,
+		 route.date.dd,
+		 route.departure_time.hh,
+		 route.departure_time.min,
+		 route.departure_time.sec,
+		 route.arrival_time.hh,
+		 route.arrival_time.min,
+		 route.arrival_time.sec,
+		 route.delay);
+	return;
+}
+
 void searchCodeLinear(Log routes, char* code){
 	for(int i = 0; i < routes.len; i++){
     	if(strcmp(code, routes.list[i].route_id) == 0){
@@ -210,19 +236,110 @@ void searchDepartureLinear(Log routes, char* departure){
 	}
 }
 
-void sortDate(Log* routes){
+void MergeDates(Route* list, Route* holder, int left, int middle, int right){
+
+    int i = left, j = middle + 1;
+
+    for(int k = left; k <= right; k++){
+    	if(i > middle)
+        	holder[k] = list[j++];
+    	else if(j > right)
+        	holder[k] = list[i++];
+        else if(compareDates(list[i].date, list[j].date) < 0)
+            holder[k] = list[i++];
+    	else if(compareDates(list[i].date, list[j].date) == 0) {
+    		if (compareTime(list[i].departure_time, list[j].departure_time) <= 0)
+    			holder[k] = list[i++];
+    		else
+    			holder[k] = list[j++];
+    	} else
+            holder[k] = list[j++];
+
+    }
+
+    for(int k = left; k <= right; k++){
+    	list[k] = holder[k];
+    }
+
+    return;
+}
+
+void MergeSortDates(Route* list, Route* holder, int len, int left, int right){
+	if (left >= right) return;
+
+    int middle = (left + right) / 2;
+
+    MergeSortDates(list, holder, len, left, middle);
+    MergeSortDates(list, holder, len, middle + 1, right);
+    MergeDates(list, holder, left, middle, right);
 
 }
 
-boolean selezionaDati(Log* routes, comando e) {
+void sortDate(Log* routes){
+	Route holder[routes->len];
+	MergeSortDates(routes->list, holder, routes->len, 0, routes->len - 1);
+}
+
+void MergeCode(Route* list, Route* holder, int left, int middle, int right){
+
+	int i = left, j = middle + 1;
+
+	for(int k = left; k <= right; k++){
+		if(i > middle)
+			holder[k] = list[j++];
+		else if(j > right)
+			holder[k] = list[i++];
+		else if(strcmp(list[i].route_id, list[j].route_id) >= 0)
+			holder[k] = list[i++];
+		else
+			holder[k] = list[j++];
+	}
+
+	for(int k = left; k <= right; k++){
+		list[k] = holder[k];
+	}
+
+	return;
+}
+
+void MergeSortCode(Route* list, Route* holder, int len, int left, int right){
+	if (left >= right) return;
+
+	int middle = (left + right) / 2;
+
+	MergeSortDates(list, holder, len, left, middle);
+	MergeSortDates(list, holder, len, middle + 1, right);
+	MergeDates(list, holder, left, middle, right);
+
+}
+
+void sortCode(Log* routes){
+	Route holder[routes->len];
+	MergeSortDates(routes->list, holder, routes->len, 0, routes->len - 1);
+}
+
+
+
+void printLog(Log routes, boolean toFile, FILE* file){
+	if(toFile) {
+		for(int i = 0; i < routes.len; i++)
+			fprintRoute(routes.list[i], file);
+	} else {
+		for(int i = 0; i < routes.len; i++)
+			printRoute(routes.list[i]);
+	}
+	return;
+}
+
+boolean selezionaDati(Log* routes, comando e, FILE * file) {
 	char info[MAX_LEN];
 	switch(e){
 		case r_stampa:
             if(scanf("%s", info) == 1){
             	if(strcmp(info, "file") == 0)
-                	printLog(*routes, TRUE);
+                	printLog(*routes, TRUE, file);
             	else
-                	printLog(*routes, FALSE);
+                	printLog(*routes, FALSE, file);
             }
         break;
 		case r_tempo:
@@ -230,15 +347,15 @@ boolean selezionaDati(Log* routes, comando e) {
             printf("\tLog sorted by date-time\n");
 			break;
 		case r_codice:
-            sortCode(routes);
+            //sortCode(routes);
 			printf("\tLog sorted by route code\n");
 			break;
 		case r_partenza:
-			sortDeparture(routes);
+			//sortDeparture(routes);
 			printf("\tLog sorted by departure station\n");
 			break;
 		case r_arrivo:
-        	sortArrival(routes);
+        	//sortArrival(routes);
             printf("\tLog sorted by arrival station\n");
 			break;
 		case r_cerca_codice:
@@ -256,5 +373,3 @@ boolean selezionaDati(Log* routes, comando e) {
 
 	return TRUE;
 }
-
-
