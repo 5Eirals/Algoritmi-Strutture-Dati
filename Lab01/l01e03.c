@@ -53,16 +53,11 @@ void fprintRoute(Route route, FILE* file);
 comando leggiComando();
 boolean selezionaDati(Log* routes, comando e, FILE* file);
 
-void MergeDates(Route* list, Route* holder, int left, int middle, int right);
-void MergeCode(Route* list, Route* holder, int left, int middle, int right);
-void MergeSortDates(Route* list, Route* holder, int len, int left, int right);
-void MergeSortCode(Route* list, Route* holder, int len, int left, int right);
+void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e);
+void MergeSor(Route* list, Route* holder, int len, int left, int right, comando e);
 
 void printLog(Log routes, boolean toFIle, FILE* file);
-void sortDate(Log* routes);
-void sortCode(Log* routes);
-void sortDeparture(Log* routes);
-void sortArrival(Log* routes);
+void sortCommand(Log* routes, comando e);
 void searchCodeLinear(Log routes, char* code);
 void searchCode(Log* routes, char* code);
 void searchDepartureLinear(Log routes, char* departure);
@@ -236,7 +231,7 @@ void searchDepartureLinear(Log routes, char* departure){
 	}
 }
 
-void MergeDates(Route* list, Route* holder, int left, int middle, int right){
+void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e){
 
     int i = left, j = middle + 1;
 
@@ -245,16 +240,42 @@ void MergeDates(Route* list, Route* holder, int left, int middle, int right){
         	holder[k] = list[j++];
     	else if(j > right)
         	holder[k] = list[i++];
-        else if(compareDates(list[i].date, list[j].date) < 0)
-            holder[k] = list[i++];
-    	else if(compareDates(list[i].date, list[j].date) == 0) {
-    		if (compareTime(list[i].departure_time, list[j].departure_time) <= 0)
-    			holder[k] = list[i++];
-    		else
-    			holder[k] = list[j++];
-    	} else
-            holder[k] = list[j++];
+        else {
+	        switch(e) {
+	        	case r_tempo:
+	        		if(compareDates(list[i].date, list[j].date) < 0)
+	        			holder[k] = list[i++];
+	        		else if(compareDates(list[i].date, list[j].date) == 0) {
+	        			if (compareTime(list[i].departure_time, list[j].departure_time) <= 0)
+	        				holder[k] = list[i++];
+	        			else
+	        				holder[k] = list[j++];
+	        		} else
+	        			holder[k] = list[j++];
 
+	        	break;
+	        	case r_codice:
+	        		if(strcmp(list[i].route_id, list[j].route_id) < 0)
+	        			holder[k] = list[i++];
+	        		else
+	        			holder[k] = list[j++];
+	        	break;
+	        	case r_arrivo:
+	        		if(strcmp(list[i].end, list[j].end) < 0)
+	        			holder[k] = list[i++];
+	        		else
+	        			holder[k] = list[j++];
+	        	break;
+	        	case r_partenza:
+	        		if(strcmp(list[i].start, list[j].start) < 0)
+	        			holder[k] = list[i++];
+	        		else
+	        			holder[k] = list[j++];
+	        	default:
+	        		printf("Missmatched command, aborting");
+	        	return;
+	        }
+        }
     }
 
     for(int k = left; k <= right; k++){
@@ -264,60 +285,21 @@ void MergeDates(Route* list, Route* holder, int left, int middle, int right){
     return;
 }
 
-void MergeSortDates(Route* list, Route* holder, int len, int left, int right){
+void MergeSort(Route* list, Route* holder, int len, int left, int right, comando e){
 	if (left >= right) return;
 
     int middle = (left + right) / 2;
 
-    MergeSortDates(list, holder, len, left, middle);
-    MergeSortDates(list, holder, len, middle + 1, right);
-    MergeDates(list, holder, left, middle, right);
+    MergeSort(list, holder, len, left, middle, e);
+    MergeSort(list, holder, len, middle + 1, right, e);
+    MergeCommand(list, holder, left, middle, right, e);
 
 }
 
-void sortDate(Log* routes){
+void sortCommand(Log* routes, comando e){
 	Route holder[routes->len];
-	MergeSortDates(routes->list, holder, routes->len, 0, routes->len - 1);
+	MergeSort(routes->list, holder, routes->len, 0, routes->len - 1, e);
 }
-
-void MergeCode(Route* list, Route* holder, int left, int middle, int right){
-
-	int i = left, j = middle + 1;
-
-	for(int k = left; k <= right; k++){
-		if(i > middle)
-			holder[k] = list[j++];
-		else if(j > right)
-			holder[k] = list[i++];
-		else if(strcmp(list[i].route_id, list[j].route_id) >= 0)
-			holder[k] = list[i++];
-		else
-			holder[k] = list[j++];
-	}
-
-	for(int k = left; k <= right; k++){
-		list[k] = holder[k];
-	}
-
-	return;
-}
-
-void MergeSortCode(Route* list, Route* holder, int len, int left, int right){
-	if (left >= right) return;
-
-	int middle = (left + right) / 2;
-
-	MergeSortDates(list, holder, len, left, middle);
-	MergeSortDates(list, holder, len, middle + 1, right);
-	MergeDates(list, holder, left, middle, right);
-
-}
-
-void sortCode(Log* routes){
-	Route holder[routes->len];
-	MergeSortDates(routes->list, holder, routes->len, 0, routes->len - 1);
-}
-
 
 
 void printLog(Log routes, boolean toFile, FILE* file){
@@ -343,19 +325,19 @@ boolean selezionaDati(Log* routes, comando e, FILE * file) {
             }
         break;
 		case r_tempo:
-            sortDate(routes);
+            sortCommand(routes, e);
             printf("\tLog sorted by date-time\n");
 			break;
 		case r_codice:
-            //sortCode(routes);
+            sortCommand(routes, e);
 			printf("\tLog sorted by route code\n");
 			break;
 		case r_partenza:
-			//sortDeparture(routes);
+			sortCommand(routes, e);
 			printf("\tLog sorted by departure station\n");
 			break;
 		case r_arrivo:
-        	//sortArrival(routes);
+			sortCommand(routes, e);
             printf("\tLog sorted by arrival station\n");
 			break;
 		case r_cerca_codice:
