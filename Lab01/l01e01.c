@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int cercaRegexp(char* src, char* regexp);
+char* cercaRegexp(char* src, char* regexp);
 int regexSize(char* str);
 
 int main(){
@@ -20,13 +20,12 @@ int main(){
 	printf("Type the regex string:");
 	scanf("%s", regexp);
 
-	printf("src: %s \n\tregex: %s\n", src, regexp);
-    int result = cercaRegexp(src, regexp);
+    char* result = cercaRegexp(src, regexp);
 
-    if (result < 0){
+    if (result == NULL){
     	printf("Regex not found\n");
     } else {
-    	printf("Regex found form index: %d", result);
+    	printf("Regex found form index: %x", result);
     }
 	return 0;
 }
@@ -52,7 +51,7 @@ int regexSize(char* str){
 	return size-1;
 }
 
-int cercaRegexp(char* src, char* regexp) {
+char* cercaRegexp(char* src, char* regexp) {
 	int index = 0, regx_i = 0;
 	int src_len = strlen(src);
 	int regex_len = regexSize(regexp);
@@ -109,9 +108,9 @@ int cercaRegexp(char* src, char* regexp) {
 
 		regx_i = 0;
 		if (valid) {
-			return index; // if during the regex check a fail condition isn't triggered return the starting index
+			return &src[index]; // if during the regex check a fail condition isn't triggered return the starting index
 		}
 	}
 
-	return -1;
+	return NULL;
 }

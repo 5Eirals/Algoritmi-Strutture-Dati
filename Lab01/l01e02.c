@@ -230,11 +230,12 @@ void printTotalDelay(Log routes, char* code){
 
 int selezionaDati(Log routes, comando e) {
 	Date start, end;
-    char station[30], code [30];
+    char station[30], code [30], check;
 
 	switch (e) {
 		case r_date:
-            if(scanf(" %d/%d/%d", &start.yy, &start.mm, &start.dd) == 3)
+			check = getchar();
+            if(check != '\n' && scanf(" %d/%d/%d", &start.yy, &start.mm, &start.dd) == 3)
                 scanf(" %d/%d/%d", &end.yy, &end.mm, &end.dd);
             else{
                 printf("Inserire la data di Inizio: <yyyy/mm/dd>\n");
@@ -246,23 +247,26 @@ int selezionaDati(Log routes, comando e) {
 			printDateInterval(routes, start, end);
 			break;
 		case r_partenza:
-            if(scanf(" %s", station) != 1){
+			check = getchar();
+			if(check == '\n' || scanf(" %s", station) != 1){
                 printf("Inserire la stazione di partenza> \n");
                 scanf("%s", station);
             }
 			printDeparture(routes, station);
 		break;
 		case r_capolinea:
-			if(scanf(" %s", station) != 1){
+			check = getchar();
+			if(check == '\n' || scanf(" %s", station) != 1){
 				printf("Inserire la stazione di partenza: \n");
 				scanf(" %s", station);
 			}
 			printArrival(routes, station);
 			break;
 		case r_ritardo:
-			if(scanf(" %d/%d/%d", &start.yy, &start.mm, &start.dd) == 3)
+			check = getchar();
+			if(check != '\n' && scanf(" %d/%d/%d", &start.yy, &start.mm, &start.dd) == 3)
 				scanf(" %d/%d/%d", &end.yy, &end.mm, &end.dd);
-			else{
+			else {
 				printf("Inserire la data di Inizio: <yyyy/mm/dd>\n");
 				scanf(" %d/%d/%d", &start.yy, &start.mm, &start.dd);
 				printf("Inserire la data di Fine: <yyyy/mm/dd>\n");
@@ -271,7 +275,8 @@ int selezionaDati(Log routes, comando e) {
 			printDelay(routes, start,  end);
 			break;
 		case r_ritardo_tot:
-			if(scanf(" %s", code) != 1){
+			check = getchar();
+			if(check == '\n' || scanf(" %s", code) != 1){
 				printf("Inserire il codice della tratta: \n");
 				scanf(" %s", code);
 			}
@@ -283,7 +288,6 @@ int selezionaDati(Log routes, comando e) {
 		default:
 			printf("An unexpected error occurred, terminating ...\n");
 			return 0;
-
 	}
 
 	return 1;

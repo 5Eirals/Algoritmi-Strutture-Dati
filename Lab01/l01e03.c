@@ -77,6 +77,8 @@ int main(){
 		return;
 	}
 
+	fprintf(fout, "checking output file\n");
+
     if(fscanf(fin, " %d ", &N) != 1){
     	printf("An error occurred during input-file N reading, terminating\n");
         return INPUT_ERROR;
@@ -315,9 +317,12 @@ void printLog(Log routes, boolean toFile, FILE* file){
 
 boolean selezionaDati(Log* routes, comando e, FILE * file) {
 	char info[MAX_LEN];
+	char check;
 	switch(e){
 		case r_stampa:
-            if(scanf("%s", info) == 1){
+			check = getchar();
+			printf("read char: %d", check);
+            if(check != '\n' && scanf("%s", info) == 1){
             	if(strcmp(info, "file") == 0)
                 	printLog(*routes, TRUE, file);
             	else
@@ -333,7 +338,7 @@ boolean selezionaDati(Log* routes, comando e, FILE * file) {
 			printf("\tLog sorted by route code\n");
 			break;
 		case r_partenza:
-			sortCommand(routes, e);
+			sortCommand(routes, r_partenza);
 			printf("\tLog sorted by departure station\n");
 			break;
 		case r_arrivo:
