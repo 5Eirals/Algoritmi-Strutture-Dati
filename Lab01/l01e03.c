@@ -51,12 +51,12 @@ void printRoute(Route route);
 void fprintRoute(Route route, FILE* file);
 
 comando leggiComando();
-boolean selezionaDati(Log* routes, comando e, FILE* file);
+boolean selezionaDati(Log* routes, comando e);
 
 void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e);
-void MergeSor(Route* list, Route* holder, int len, int left, int right, comando e);
+void MergeSort(Route* list, Route* holder, int len, int left, int right, comando e);
 
-void printLog(Log routes, boolean toFIle, FILE* file);
+void printLog(Log routes, boolean toFIle);
 void sortCommand(Log* routes, comando e);
 void searchCodeLinear(Log routes, char* code);
 void searchCode(Log* routes, char* code);
@@ -64,7 +64,7 @@ void searchDepartureLinear(Log routes, char* departure);
 void searchDeparture(Log* routes, char* departure);
 
 int main(){
-	FILE* fin, *fout;
+	FILE* fin;
     int N;
 	Log log;
 
@@ -72,12 +72,7 @@ int main(){
     	printf("An error occurred during input-file opening, terminating\n");
         return FILE_ERROR;
     }
-	if((fout = fopen("output.txt", "w")) == NULL){
-		printf("An error occurred during output-file opening, aborting\n");
-		return;
-	}
 
-	fprintf(fout, "checking output file\n");
 
     if(fscanf(fin, " %d ", &N) != 1){
     	printf("An error occurred during input-file N reading, terminating\n");
@@ -110,7 +105,7 @@ int main(){
 
 	log.list = routes;
 
-	while (selezionaDati(&log, leggiComando(), fout)) {}
+	while (selezionaDati(&log, leggiComando())) {}
 
 	fclose(fin);
 	return 0;
@@ -303,31 +298,55 @@ void sortCommand(Log* routes, comando e){
 	MergeSort(routes->list, holder, routes->len, 0, routes->len - 1, e);
 }
 
+void searchCode(Log* routes, char* code) {
+	sortCommand(routes, r_codice);
+	int left = 0, right = routes->len - 1, middle = (left+right)/2;
+	boolean found = FALSE;
+	while (middle >= left && middle <= right && !found) {
+		if (strcmp(routes->list[middle].route_id, code) == 0) {
+			printRoute(routes->list[middle]);
+			found = TRUE;
+		} else if (strcmp(routes->list[middle].route_id, code) > 0)
+			middle = (middle + right)/2;
+		else
+			middle = (middle + left)/2;
+	}
 
-void printLog(Log routes, boolean toFile, FILE* file){
+	if (!found)
+		printf("No match found for code %s\n");
+}
+
+
+void printLog(Log routes, boolean toFile){
+	FILE* fout;
 	if(toFile) {
+		if((fout = fopen("Lab01/output.txt", "w")) == NULL){
+			printf("An error occurred during output-file opening, aborting\n");
+			return;
+		}
 		for(int i = 0; i < routes.len; i++)
-			fprintRoute(routes.list[i], file);
+			fprintRoute(routes.list[i], fout);
 	} else {
 		for(int i = 0; i < routes.len; i++)
 			printRoute(routes.list[i]);
 	}
+	fclose(fout);
 	return;
 }
 
-boolean selezionaDati(Log* routes, comando e, FILE * file) {
+boolean selezionaDati(Log* routes, comando e) {
 	char info[MAX_LEN];
 	char check;
 	switch(e){
 		case r_stampa:
 			check = getchar();
-			printf("read char: %d", check);
             if(check != '\n' && scanf("%s", info) == 1){
             	if(strcmp(info, "file") == 0)
-                	printLog(*routes, TRUE, file);
+                	printLog(*routes, TRUE);
             	else
-                	printLog(*routes, FALSE, file);
-            }
+                	printLog(*routes, FALSE);
+            } else
+            	printLog(*routes, FALSE);
         break;
 		case r_tempo:
             sortCommand(routes, e);
@@ -346,8 +365,25 @@ boolean selezionaDati(Log* routes, comando e, FILE * file) {
             printf("\tLog sorted by arrival station\n");
 			break;
 		case r_cerca_codice:
+			check = getchar();
+			if(check != '\n' && scanf("%s", info) == 1)
+				searchCode(routes, info);
+			else {
+				printf("Insert the code to search: \n");
+				scanf("%s", info);
+				searchCode(routes, info);
+			}
 			break;
 		case r_cerca_partenza:
+			check = getchar();
+			if(check != '\n' && scanf("%s", info) == 1)
+				printf("search departures\n");
+				//searchDeparture(routes, info);
+			else {
+				printf("Insert the code to search: \n");
+				scanf("%s", info);
+				//searchDeparture(routes, info);
+			}
 			break;
 		case r_fine:
 			printf("\t---\texiting program \t---\n");

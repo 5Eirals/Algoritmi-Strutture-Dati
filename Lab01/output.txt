@@ -1,0 +1,30 @@
+GTT004 Marmolada - Sebastopoli 2018/11/10
+	departure - 00:01:02
+	arrival - 00:12:00
+	delay: 03
+
+GTT003 Einaudi - Cso_Trapani 2018/09/10
+	departure - 14:11:23
+	arrival - 14:38:23
+	delay: 02
+
+GTT002 Politecnico - XVIII_Dicembre 2018/10/10
+	departure - 10:01:23
+	arrival - 10:12:08
+	delay: 04
+
+GTT002 Politecnico - Piazza_Statuto 2018/11/10
+	departure - 23:11:59
+	arrival - 23:20:07
+	delay: 00
+
+GTT001 Braccini - Porta_Nuova 2018/12/10
+	departure - 19:50:00
+	arrival - 20:06:00
+	delay: 01
+
+GTT001 Braccini - Porta_Nuova 2018/10/10
+	departure - 18:50:00
+	arrival - 19:07:25
+	delay: 01
+
