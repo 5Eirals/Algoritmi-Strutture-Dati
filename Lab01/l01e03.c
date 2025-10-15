@@ -60,7 +60,6 @@ void printLog(Log routes, boolean toFIle);
 void sortCommand(Log* routes, comando e);
 void searchCodeLinear(Log routes, char* code);
 void searchCode(Log* routes, char* code);
-void searchDepartureLinear(Log routes, char* departure);
 void searchDeparture(Log* routes, char* departure);
 
 int main(){
@@ -112,7 +111,7 @@ int main(){
 }
 
 comando leggiComando() {
-	char str[30];
+	char str[MAX_LEN];
 
 	printf("Digitare l'operazione desiderata:\n"
 		"\t1. stampa, a scelta se a video o su file, dei contenuti del file <stampa>\n"
@@ -218,14 +217,6 @@ void searchCodeLinear(Log routes, char* code){
         	break;
     	}
     }
-}
-
-void searchDepartureLinear(Log routes, char* departure){
-	for(int i = 0; i < routes.len; i++){
-		if(strcmp(departure, routes.list[i].start) == 0){
-			printRoute(routes.list[i]);
-		}
-	}
 }
 
 void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e){
@@ -361,12 +352,9 @@ boolean selezionaDati(Log* routes, comando e) {
 	switch(e){
 		case r_stampa:
 			check = getchar();
-            if(check != '\n' && scanf("%s", info) == 1){
-            	if(strcmp(info, "file") == 0)
-                	printLog(*routes, TRUE);
-            	else
-                	printLog(*routes, FALSE);
-            } else
+            if(check != '\n' && scanf("%s", info) == 1 && strcmp(info, "file") == 0)
+            	printLog(*routes, TRUE);
+            else
             	printLog(*routes, FALSE);
         break;
 		case r_tempo:
@@ -402,7 +390,7 @@ boolean selezionaDati(Log* routes, comando e) {
 			else {
 				printf("Insert the code to search: \n");
 				scanf("%s", info);
-				//searchDeparture(routes, info);
+				searchDeparture(routes, info);
 			}
 			break;
 		case r_fine:

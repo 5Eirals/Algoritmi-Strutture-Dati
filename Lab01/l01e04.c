@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define FILE_ERROR 3
@@ -32,10 +33,15 @@ struct route_s {
     int delay;
 };
 
-typedef struct log_s Log;
-struct log_s {
+typedef struct registry_s Registry;
+struct registry_s {
 	int len;
-	Route* list;
+    Route* list;
+    Route** src;
+	Route** time_sorted;
+	Route** code_sorted;
+	Route** start_sorted;
+	Route** end_sorted;
 };
 
 typedef enum comando_e comando;
@@ -47,26 +53,26 @@ int monthToDays(int month);
 int compareTime(Time t1, Time t2);
 int compareDates(Date d1, Date d2);
 void printDate(Date d);
-void printRoute(Route route);
-void fprintRoute(Route route, FILE* file);
+void printRoute(Route* route);
+void fprintRoute(Route* route, FILE* file);
 
 comando leggiComando();
-boolean selezionaDati(Log* routes, comando e);
+boolean selezionaDati(Registry* registry, comando e);
 
-void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e);
-void MergeSort(Route* list, Route* holder, int len, int left, int right, comando e);
+void MergeCommand(Route** list, Route** holder, int left, int middle, int right, comando e);
+void MergeSort(Route** list, Route** holder, int len, int left, int right, comando e);
 
-void printLog(Log routes, boolean toFIle);
-void sortCommand(Log* routes, comando e);
-void searchCodeLinear(Log routes, char* code);
-void searchCode(Log* routes, char* code);
-void searchDepartureLinear(Log routes, char* departure);
-void searchDeparture(Log* routes, char* departure);
+void printLog(Route** routes, int len, boolean toFIle);
+void sortCommand(Registry* routes, comando e);
+void searchCodeLinear(Registry* routes, char* code);
+void searchCode(Registry* routes, char* code);
+void searchDepartureLinear(Registry routes, char* departure);
+void searchDeparture(Registry* routes, char* departure);
 
 int main(){
 	FILE* fin;
     int N;
-	Log log;
+    Registry registry;
 
     if((fin = fopen("Lab01/corse.txt", "r")) == NULL){
     	printf("An error occurred during input-file opening, terminating\n");
@@ -79,35 +85,54 @@ int main(){
         return INPUT_ERROR;
     }
 
-	log.len = N;
-    Route routes[N];
+	registry.len = N;
+    registry.list = (Route*)malloc(sizeof(Route) * N);
+	registry.src = (Route**)malloc(N*sizeof(Route*));
+    registry.time_sorted = (Route**)malloc(N*sizeof(Route*));
+	registry.code_sorted = (Route**)malloc(N*sizeof(Route*));
+    registry.start_sorted = (Route**)malloc(N*sizeof(Route*));
+    registry.end_sorted = (Route**)malloc(N*sizeof(Route*));
 
     for(int i = 0; i < N; i++){
     	if (feof(fin) != EOF && fscanf(fin, " %s %s %s %d/%d/%d %d:%d:%d %d:%d:%d %d ",
-				 routes[i].route_id,
-				 routes[i].start,
-				 routes[i].end,
-				 &routes[i].date.yy,
-				 &routes[i].date.mm,
-				 &routes[i].date.dd,
-				 &routes[i].departure_time.hh,
-				 &routes[i].departure_time.min,
-				 &routes[i].departure_time.sec,
-				 &routes[i].arrival_time.hh,
-				 &routes[i].arrival_time.min,
-				 &routes[i].arrival_time.sec,
-				 &routes[i].delay
+				 registry.list[i].route_id,
+				 registry.list[i].start,
+				 registry.list[i].end,
+				 &registry.list[i].date.yy,
+				 &registry.list[i].date.mm,
+				 &registry.list[i].date.dd,
+				 &registry.list[i].departure_time.hh,
+				 &registry.list[i].departure_time.min,
+				 &registry.list[i].departure_time.sec,
+				 &registry.list[i].arrival_time.hh,
+				 &registry.list[i].arrival_time.min,
+				 &registry.list[i].arrival_time.sec,
+				 &registry.list[i].delay
 				 ) != 13) {
     		printf("An error occurred durinng input-file reading, terminating\n");
     		return INPUT_ERROR;
     	}
     }
 
-	log.list = routes;
+    for(int i = 0; i < N; i++){
+    	registry.src[i] = &(registry.list[i]);
+    	registry.time_sorted[i] = &(registry.list[i]);
+    	registry.code_sorted[i] = &(registry.list[i]);
+    	registry.start_sorted[i] = &(registry.list[i]);
+    	registry.end_sorted[i] = &(registry.list[i]);
+    }
 
-	while (selezionaDati(&log, leggiComando())) {}
+	while (selezionaDati(&registry, leggiComando())) {}
 
 	fclose(fin);
+
+	free(registry.list);
+	free(registry.src);
+    free(registry.time_sorted);
+    free(registry.code_sorted);
+    free(registry.start_sorted);
+    free(registry.end_sorted);
+
 	return 0;
 }
 
@@ -175,60 +200,52 @@ void printDate(Date d) {
 	printf("%04d/%02d/%02d\n", d.yy, d.mm, d.dd);
 }
 
-void printRoute(Route route){
+void printRoute(Route* route){
 	printf("%s %s - %s %04d/%02d/%02d\n\tdeparture - %02d:%02d:%02d\n\tarrival - %02d:%02d:%02d\n\tdelay: %02d\n\n",
-         route.route_id,
-         route.start,
-         route.end,
-         route.date.yy,
-         route.date.mm,
-         route.date.dd,
-         route.departure_time.hh,
-         route.departure_time.min,
-         route.departure_time.sec,
-         route.arrival_time.hh,
-         route.arrival_time.min,
-         route.arrival_time.sec,
-         route.delay);
+         route->route_id,
+         route->start,
+         route->end,
+         route->date.yy,
+         route->date.mm,
+         route->date.dd,
+         route->departure_time.hh,
+         route->departure_time.min,
+         route->departure_time.sec,
+         route->arrival_time.hh,
+         route->arrival_time.min,
+         route->arrival_time.sec,
+         route->delay);
     return;
 }
 
-void fprintRoute(Route route, FILE* file){
+void fprintRoute(Route* route, FILE* file){
 	fprintf(file, "%s %s - %s %04d/%02d/%02d\n\tdeparture - %02d:%02d:%02d\n\tarrival - %02d:%02d:%02d\n\tdelay: %02d\n\n",
-		 route.route_id,
-		 route.start,
-		 route.end,
-		 route.date.yy,
-		 route.date.mm,
-		 route.date.dd,
-		 route.departure_time.hh,
-		 route.departure_time.min,
-		 route.departure_time.sec,
-		 route.arrival_time.hh,
-		 route.arrival_time.min,
-		 route.arrival_time.sec,
-		 route.delay);
+		 route->route_id,
+		 route->start,
+		 route->end,
+		 route->date.yy,
+		 route->date.mm,
+		 route->date.dd,
+		 route->departure_time.hh,
+		 route->departure_time.min,
+		 route->departure_time.sec,
+		 route->arrival_time.hh,
+		 route->arrival_time.min,
+		 route->arrival_time.sec,
+		 route->delay);
 	return;
 }
 
-void searchCodeLinear(Log routes, char* code){
-	for(int i = 0; i < routes.len; i++){
-    	if(strcmp(code, routes.list[i].route_id) == 0){
-        	printRoute(routes.list[i]);
+void searchCodeLinear(Registry* routes, char* code){
+	for(int i = 0; i < routes->len; i++){
+    	if(strcmp(code, routes->list[i].route_id) == 0){
+        	printRoute(&(routes->list[i]));
         	break;
     	}
     }
 }
 
-void searchDepartureLinear(Log routes, char* departure){
-	for(int i = 0; i < routes.len; i++){
-		if(strcmp(departure, routes.list[i].start) == 0){
-			printRoute(routes.list[i]);
-		}
-	}
-}
-
-void MergeCommand(Route* list, Route* holder, int left, int middle, int right, comando e){
+void MergeCommand(Route** list, Route** holder, int left, int middle, int right, comando e){
 
     int i = left, j = middle + 1;
 
@@ -240,10 +257,10 @@ void MergeCommand(Route* list, Route* holder, int left, int middle, int right, c
         else {
 	        switch(e) {
 	        	case r_tempo:
-	        		if(compareDates(list[i].date, list[j].date) < 0)
+	        		if(compareDates(list[i]->date, list[j]->date) < 0)
 	        			holder[k] = list[i++];
-	        		else if(compareDates(list[i].date, list[j].date) == 0) {
-	        			if (compareTime(list[i].departure_time, list[j].departure_time) <= 0)
+	        		else if(compareDates(list[i]->date, list[j]->date) == 0) {
+	        			if (compareTime(list[i]->departure_time, list[j]->departure_time) <= 0)
 	        				holder[k] = list[i++];
 	        			else
 	        				holder[k] = list[j++];
@@ -252,19 +269,19 @@ void MergeCommand(Route* list, Route* holder, int left, int middle, int right, c
 
 	        	break;
 	        	case r_codice:
-	        		if(strcmp(list[i].route_id, list[j].route_id) < 0)
+	        		if(strcmp(list[i]->route_id, list[j]->route_id) < 0)
 	        			holder[k] = list[i++];
 	        		else
 	        			holder[k] = list[j++];
 	        	break;
 	        	case r_arrivo:
-	        		if(strcmp(list[i].end, list[j].end) < 0)
+	        		if(strcmp(list[i]->end, list[j]->end) < 0)
 	        			holder[k] = list[i++];
 	        		else
 	        			holder[k] = list[j++];
 	        	break;
 	        	case r_partenza:
-	        		if(strcmp(list[i].start, list[j].start) < 0)
+	        		if(strcmp(list[i]->start, list[j]->start) < 0)
 	        			holder[k] = list[i++];
 	        		else
 	        			holder[k] = list[j++];
@@ -276,14 +293,13 @@ void MergeCommand(Route* list, Route* holder, int left, int middle, int right, c
         }
     }
 
-    for(int k = left; k <= right; k++){
-    	list[k] = holder[k];
-    }
+	for(int k = left; k <= right; k++)
+		list[k] = holder[k];
 
     return;
 }
 
-void MergeSort(Route* list, Route* holder, int len, int left, int right, comando e){
+void MergeSort(Route** list, Route** holder, int len, int left, int right, comando e){
 	if (left >= right) return;
 
     int middle = (left + right) / 2;
@@ -294,22 +310,38 @@ void MergeSort(Route* list, Route* holder, int len, int left, int right, comando
 
 }
 
-void sortCommand(Log* routes, comando e){
-	Route holder[routes->len];
-	MergeSort(routes->list, holder, routes->len, 0, routes->len - 1, e);
+void sortCommand(Registry* routes, comando e){
+	Route* holder[routes->len];
+	switch (e) {
+        case r_tempo:
+        	MergeSort(routes->time_sorted, holder, routes->len, 0, routes->len - 1, e);
+          	break;
+        case r_codice:
+        	MergeSort(routes->code_sorted, holder, routes->len, 0, routes->len - 1, e);
+            break;
+        case r_arrivo:
+        	MergeSort(routes->end_sorted, holder, routes->len, 0, routes->len - 1, e);
+            break;
+        case r_partenza:
+        	MergeSort(routes->start_sorted, holder, routes->len, 0, routes->len - 1, e);
+            break;
+       	default:
+        	printf("Missmatched command, aborting\n");
+        	return;
+	}
 }
 
-void searchCode(Log* routes, char* code) {
+void searchCode(Registry* routes, char* code) {
 	sortCommand(routes, r_codice);
 	int left = 0, right = routes->len, middle = 0;
 	boolean found = FALSE;
 	if (strcmp(routes->list[right-1].route_id, code) == 0) {
-		printRoute(routes->list[right-1]);
+		printRoute(&(routes->list[right-1]));
 		found = TRUE;
 	}
 	while (middle < right-1 && !found) {
 		if (strcmp(routes->list[middle].route_id, code) == 0) {
-			printRoute(routes->list[middle]);
+			printRoute(&(routes->list[middle]));
 			found = TRUE;
 		} else if (strcmp(routes->list[middle].route_id, code) < 0){
 			middle = (middle + right)/2;
@@ -322,13 +354,13 @@ void searchCode(Log* routes, char* code) {
 		printf("No match found for code '%s'\n", code);
 }
 
-void searchDeparture(Log* routes, char* station) {
+void searchDeparture(Registry* routes, char* station) {
 	boolean found = FALSE;
 
 	sortCommand(routes, r_partenza);
 	for (int i = 0; i < routes->len; i++) {
-		if ((int)strstr(routes->list[i].start, station) == (int)&routes->list[i].start) {
-			printRoute(routes->list[i]);
+		if ((int)strstr(routes->start_sorted[i]->start, station) == (int)&routes->start_sorted[i]->start) {
+			printRoute(routes->start_sorted[i]);
 			found = TRUE;
 		}
 	}
@@ -338,52 +370,53 @@ void searchDeparture(Log* routes, char* station) {
 }
 
 
-void printLog(Log routes, boolean toFile){
+void printLog(Route** routes, int len, boolean toFile){
 	FILE* fout;
 	if(toFile) {
 		if((fout = fopen("Lab01/output.txt", "w")) == NULL){
 			printf("An error occurred during output-file opening, aborting\n");
 			return;
 		}
-		for(int i = 0; i < routes.len; i++)
-			fprintRoute(routes.list[i], fout);
+		for(int i = 0; i < len; i++)
+			fprintRoute(routes[i], fout);
 		fclose(fout);
 	} else {
-		for(int i = 0; i < routes.len; i++)
-			printRoute(routes.list[i]);
+		for(int i = 0; i < len; i++)
+			printRoute(routes[i]);
 	}
 	return;
 }
 
-boolean selezionaDati(Log* routes, comando e) {
+boolean selezionaDati(Registry* routes, comando e) {
 	char info[MAX_LEN];
 	char check;
 	switch(e){
 		case r_stampa:
 			check = getchar();
-            if(check != '\n' && scanf("%s", info) == 1){
-            	if(strcmp(info, "file") == 0)
-                	printLog(*routes, TRUE);
-            	else
-                	printLog(*routes, FALSE);
-            } else
-            	printLog(*routes, FALSE);
+            if(check != '\n' && scanf("%s", info) == 1 && strcmp(info, "file") == 0)
+                printLog(routes->src, routes->len, TRUE);
+            else
+            	printLog(routes->src, routes->len, FALSE);
         break;
 		case r_tempo:
             sortCommand(routes, e);
-            printf("\tLog sorted by date-time\n");
+            printf("\tLog sorted by date-time:\n");
+			printLog(routes->time_sorted, routes->len, FALSE);
 			break;
 		case r_codice:
             sortCommand(routes, e);
 			printf("\tLog sorted by route code\n");
+			printLog(routes->code_sorted, routes->len, FALSE);
 			break;
 		case r_partenza:
 			sortCommand(routes, r_partenza);
 			printf("\tLog sorted by departure station\n");
+			printLog(routes->start_sorted, routes->len, FALSE);
 			break;
 		case r_arrivo:
 			sortCommand(routes, e);
             printf("\tLog sorted by arrival station\n");
+			printLog(routes->end_sorted, routes->len, FALSE);
 			break;
 		case r_cerca_codice:
 			check = getchar();
@@ -402,7 +435,7 @@ boolean selezionaDati(Log* routes, comando e) {
 			else {
 				printf("Insert the code to search: \n");
 				scanf("%s", info);
-				//searchDeparture(routes, info);
+				searchDeparture(routes, info);
 			}
 			break;
 		case r_fine:
