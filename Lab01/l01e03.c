@@ -268,8 +268,9 @@ void MergeCommand(Route* list, Route* holder, int left, int middle, int right, c
 	        			holder[k] = list[i++];
 	        		else
 	        			holder[k] = list[j++];
+	        	break;
 	        	default:
-	        		printf("Missmatched command, aborting");
+	        		printf("Missmatched command, aborting\n");
 	        	return;
 	        }
         }
@@ -300,20 +301,40 @@ void sortCommand(Log* routes, comando e){
 
 void searchCode(Log* routes, char* code) {
 	sortCommand(routes, r_codice);
-	int left = 0, right = routes->len - 1, middle = (left+right)/2;
+	int left = 0, right = routes->len, middle = 0;
 	boolean found = FALSE;
-	while (middle >= left && middle <= right && !found) {
+	if (strcmp(routes->list[right-1].route_id, code) == 0) {
+		printRoute(routes->list[right-1]);
+		found = TRUE;
+	}
+	while (middle < right-1 && !found) {
 		if (strcmp(routes->list[middle].route_id, code) == 0) {
 			printRoute(routes->list[middle]);
 			found = TRUE;
-		} else if (strcmp(routes->list[middle].route_id, code) > 0)
+		} else if (strcmp(routes->list[middle].route_id, code) < 0){
 			middle = (middle + right)/2;
-		else
+		}else{
 			middle = (middle + left)/2;
+        }
 	}
 
 	if (!found)
-		printf("No match found for code %s\n");
+		printf("No match found for code '%s'\n", code);
+}
+
+void searchDeparture(Log* routes, char* station) {
+	boolean found = FALSE;
+
+	sortCommand(routes, r_partenza);
+	for (int i = 0; i < routes->len; i++) {
+		if ((int)strstr(routes->list[i].start, station) == (int)&routes->list[i].start) {
+			printRoute(routes->list[i]);
+			found = TRUE;
+		}
+	}
+
+	if (!found)
+		printf("No match found for station-token '%s'\n", station);
 }
 
 
@@ -326,11 +347,11 @@ void printLog(Log routes, boolean toFile){
 		}
 		for(int i = 0; i < routes.len; i++)
 			fprintRoute(routes.list[i], fout);
+		fclose(fout);
 	} else {
 		for(int i = 0; i < routes.len; i++)
 			printRoute(routes.list[i]);
 	}
-	fclose(fout);
 	return;
 }
 
@@ -377,8 +398,7 @@ boolean selezionaDati(Log* routes, comando e) {
 		case r_cerca_partenza:
 			check = getchar();
 			if(check != '\n' && scanf("%s", info) == 1)
-				printf("search departures\n");
-				//searchDeparture(routes, info);
+				searchDeparture(routes, info);
 			else {
 				printf("Insert the code to search: \n");
 				scanf("%s", info);
