@@ -28,3 +28,8 @@ GTT001 Braccini - Porta_Nuova 2018/10/10
 	arrival - 19:07:25
 	delay: 01
 
+GTT005 Cernaia - Venaria 2018/12/08
+	departure - 19:51:00
+	arrival - 21:17:26
+	delay: 07
+

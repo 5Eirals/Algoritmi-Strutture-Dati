@@ -1,0 +1,8 @@
+GTT005 Marmolada Sebastopoli 2018/11/10 00:01:02 00:12:00 3
+GTT006 Einaudi Cso_Trapani 2018/09/10 14:11:23 14:38:23 2
+GTT007 Politecnico XVIII_Dicembre 2018/10/10 10:01:23 10:12:08 4
+GTT008 Politecnico Piazza_Statuto 2018/11/10 23:11:59 23:20:07 0
+GTT009 Braccini Porta_Nuova 2018/12/10 19:50:00 20:06:00 1
+GTT009 Braccini Porta_Nuova 2018/10/10 18:50:00 19:07:25 1
+GTT010 Cernaia Venaria 2018/12/08 19:51:00 21:17:26 7
+GTT011 Cernaia Venaria 2018/12/09 19:51:00 21:17:26 7

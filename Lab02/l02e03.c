@@ -4,6 +4,7 @@
 
 #define FILE_ERROR 3
 #define INPUT_ERROR 4
+#define DEFAULT_PATH "Lab02/corse.txt"
 #define MAX_LEN 30
 
 typedef enum {FALSE = 0, TRUE} boolean;
@@ -46,7 +47,7 @@ struct registry_s {
 
 typedef enum comando_e comando;
 enum comando_e {
-	r_stampa, r_tempo, r_codice, r_partenza, r_arrivo, r_cerca_codice, r_cerca_partenza, r_fine
+	r_leggi, r_stampa, r_tempo, r_codice, r_partenza, r_arrivo, r_cerca_codice, r_cerca_partenza, r_fine
 };
 
 int mallocRegistry(FILE* fin, Registry* registry);
@@ -57,7 +58,6 @@ int monthToDays(int month);
 int compareTime(Time t1, Time t2);
 int compareDates(Date d1, Date d2);
 void printDate(Date d);
-void printRoute(Route* route);
 void fprintRoute(Route* route, FILE* file);
 
 comando leggiComando();
@@ -87,21 +87,22 @@ int main(){
 int mallocRegistry(FILE* fin, Registry* registry){
 	int len = 1;
     char buffer[128];
+	char check;
     while(!feof(fin)){
-    	fgets(buffer, 128, fin);
-        len++;
+    	if (check = fgetc(fin) != EOF) {
+    		fgets(buffer, 128, fin);
+			len++;
+    	}
     }
 
-    printf("Registri len: %d\n", len);
-
-	registry->list = (Route*)malloc(sizeof(Route) * len);
+	registry->list = (Route*)malloc(sizeof(Route) * len-1);
 	registry->src = (Route**)malloc(len*sizeof(Route*));
 	registry->time_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->code_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->start_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->end_sorted = (Route**)malloc(len*sizeof(Route*));
 
-    return len;
+    return len-1;
 }
 
 int readRegistry(char* path, Registry* registry){
@@ -163,19 +164,21 @@ comando leggiComando() {
 	char str[30];
 
 	printf("Digitare l'operazione desiderata:\n"
-		"\t1. stampa, a scelta se a video o su file, dei contenuti del file <stampa>\n"
-		"\t2. ordinamento del vettore per data, e a parità di date per ora  <tempo>\n"
-		"\t3. ordinamento del vettore per codice di tratta <codice>\n"
-		"\t4. ordinamento del vettore per stazione di partenza <partenza>\n"
-		"\t5. ordinamento del vettore per stazione di arrivo <arrivo>\n"
-        "\t6. ricerca di tratta per codice <cerca_c>\n"
-        "\t7. ricerca di tratta per stazione di partenza <cerca_p>\n"
-		"\t8. esci <fine>\n"
+		"\t1. leggi i contenuti da file <leggi>\n"
+		"\t2. stampa, a scelta se a video o su file, dei contenuti del file <stampa>\n"
+		"\t3. ordinamento del vettore per data, e a parità di date per ora  <tempo>\n"
+		"\t4. ordinamento del vettore per codice di tratta <codice>\n"
+		"\t5. ordinamento del vettore per stazione di partenza <partenza>\n"
+		"\t6. ordinamento del vettore per stazione di arrivo <arrivo>\n"
+        "\t7. ricerca di tratta per codice <cerca_c>\n"
+        "\t8. ricerca di tratta per stazione di partenza <cerca_p>\n"
+		"\t9. esci <fine>\n"
 		">> "
 	);
 
 	for (;;) {
 		scanf(" %s", str);
+		if (strcmp(str, "leggi") == 0) return r_leggi;
 		if (strcmp(str, "stampa") == 0) return r_stampa;
 		if (strcmp(str, "tempo") == 0) return r_tempo;
 		if (strcmp(str, "codice") == 0) return r_codice;
@@ -244,7 +247,7 @@ void fprintRoute(Route* route, FILE* file){
 void searchCodeLinear(Registry* routes, char* code){
 	for(int i = 0; i < routes->len; i++){
     	if(strcmp(code, routes->list[i].route_id) == 0){
-        	printRoute(&(routes->list[i]));
+        	fprintRoute(&(routes->list[i]), stdout);
         	break;
     	}
     }
@@ -341,12 +344,12 @@ void searchCode(Registry* routes, char* code) {
 	int left = 0, right = routes->len, middle = 0;
 	boolean found = FALSE;
 	if (strcmp(routes->list[right-1].route_id, code) == 0) {
-		printRoute(&(routes->list[right-1]));
+		fprintRoute(&(routes->list[right-1]), stdout);
 		found = TRUE;
 	}
 	while (middle < right-1 && !found) {
 		if (strcmp(routes->list[middle].route_id, code) == 0) {
-			printRoute(&(routes->list[middle]));
+			fprintRoute(&(routes->list[middle]), stdout);
 			found = TRUE;
 		} else if (strcmp(routes->list[middle].route_id, code) < 0){
 			middle = (middle + right)/2;
@@ -365,7 +368,7 @@ void searchDeparture(Registry* routes, char* station) {
 	sortCommand(routes, r_partenza);
 	for (int i = 0; i < routes->len; i++) {
 		if ((int)strstr(routes->start_sorted[i]->start, station) == (int)&routes->start_sorted[i]->start) {
-			printRoute(routes->start_sorted[i]);
+			fprintRoute(routes->start_sorted[i], stdout);
 			found = TRUE;
 		}
 	}
@@ -396,6 +399,13 @@ boolean selezionaDati(Registry* routes, comando e) {
 	char info[MAX_LEN];
 	char check;
 	switch(e){
+        case r_leggi:
+        	check = getchar();
+			if(check != '\n' && scanf("%s", info) == 1)
+        		printf(readRegistry(info, routes) == TRUE ? "Read file with success\n" : "Error while reading from file\n");
+            else
+            	printf(readRegistry(DEFAULT_PATH, routes) == TRUE? "Read default-file with success\n" : "Error while reading from default-file\n");
+        break;
 		case r_stampa:
 			check = getchar();
             if(check != '\n' && scanf("%s", info) == 1 && strcmp(info, "file") == 0)
@@ -445,6 +455,7 @@ boolean selezionaDati(Registry* routes, comando e) {
 			break;
 		case r_fine:
 			printf("\t---\texiting program \t---\n");
+            freeRegistry(routes);
 			return FALSE;
 			break;
         default:
