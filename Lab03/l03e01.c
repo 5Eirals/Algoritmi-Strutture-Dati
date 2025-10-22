@@ -16,15 +16,20 @@ int main(){
     	printf("No majority number found\n");
 
 	return 0;
+
+        
 }
 
 int majority(int* a, int N ){ //how to implement backtracking?
-	for(int i = 0; i < N; i++){
-        if(a[0] == a[1]){
-   			return 1 + majority(a+i, N-i);
+
+	for(int i = 1; i < N; i++){
+		printf("Looking: %d\n", a[0]);
+        if(a[0] == a[i]){
+        	printf("Read: %d at i:%d\n", a[i], i);
+
         }
-          return 0;
 
 	}
-	return majority(a+1, N-1);
+
+	return -1;
 }

@@ -5,6 +5,7 @@
 #define FILE_ERROR 3
 #define INPUT_ERROR 4
 #define DEFAULT_PATH "Lab02/corse.txt"
+#define DEFAULT_OUTPUT "Lab02/output.txt"
 #define MAX_LEN 30
 
 typedef enum {FALSE = 0, TRUE} boolean;
@@ -52,16 +53,17 @@ enum comando_e {
 
 int mallocRegistry(FILE* fin, Registry* registry);
 void freeRegistry(Registry* registry);
-int readRegistry(char* path, Registry* registry);
+Registry* readRegistry(char* path, Registry* registry);
 
 int monthToDays(int month);
 int compareTime(Time t1, Time t2);
 int compareDates(Date d1, Date d2);
 void printDate(Date d);
 void fprintRoute(Route* route, FILE* file);
+void printRegistry(Registry* registry);
 
 comando leggiComando();
-boolean selezionaDati(Registry* registry, comando e);
+Registry* selezionaDati(Registry* registry, comando e);
 
 void MergeCommand(Route** list, Route** holder, int left, int middle, int right, comando e);
 void MergeSort(Route** list, Route** holder, int len, int left, int right, comando e);
@@ -70,48 +72,47 @@ void printLog(Route** routes, int len, boolean toFIle);
 void sortCommand(Registry* routes, comando e);
 void searchCodeLinear(Registry* routes, char* code);
 void searchCode(Registry* routes, char* code);
-void searchDepartureLinear(Registry routes, char* departure);
 void searchDeparture(Registry* routes, char* departure);
 
 int main(){
 	FILE* fin;
     char path[MAX_LEN];
-    Registry* registry = (Registry*)malloc(sizeof(Registry));
+    Registry* registry = readRegistry(DEFAULT_PATH, registry);
 
-
-	while (selezionaDati(registry, leggiComando())) {}
+	while ((registry = selezionaDati(registry, leggiComando())) != NULL) {}
 
 	return 0;
 }
 
 int mallocRegistry(FILE* fin, Registry* registry){
-	int len = 1;
+	int len = 0;
     char buffer[128];
 	char check;
     while(!feof(fin)){
-    	if (check = fgetc(fin) != EOF) {
-    		fgets(buffer, 128, fin);
-			len++;
-    	}
+    	fgets(buffer, 128, fin);
+    	len++;
     }
 
-	registry->list = (Route*)malloc(sizeof(Route) * len-1);
+	printf("Registry size: %d\n", len);
+	registry->list = (Route*)malloc(sizeof(Route) * len);
 	registry->src = (Route**)malloc(len*sizeof(Route*));
 	registry->time_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->code_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->start_sorted = (Route**)malloc(len*sizeof(Route*));
 	registry->end_sorted = (Route**)malloc(len*sizeof(Route*));
 
-    return len-1;
+    return len;
 }
 
-int readRegistry(char* path, Registry* registry){
+Registry* readRegistry(char* path, Registry* registry){
   	FILE* fin;
 
 	if((fin = fopen(path, "r")) == NULL){
 		printf("An error occurred during input-file opening, terminating\n");
 		return FILE_ERROR;
 	}
+
+	registry = (Registry*)malloc(sizeof(Registry));
 	registry->len = mallocRegistry(fin, registry);
     fclose(fin);
 
@@ -133,7 +134,7 @@ int readRegistry(char* path, Registry* registry){
 				 &registry->list[i].delay
 				 ) != 13) {
 			printf("An error occurred durinng input-file reading, terminating\n");
-			return INPUT_ERROR;
+			return NULL;
 				 }
 	}
 
@@ -146,7 +147,7 @@ int readRegistry(char* path, Registry* registry){
 	}
 
     fclose(fin);
-    return TRUE;
+    return registry;
 
 }
 
@@ -241,6 +242,11 @@ void fprintRoute(Route* route, FILE* file){
 		 route->arrival_time.min,
 		 route->arrival_time.sec,
 		 route->delay);
+	return;
+}
+
+void printRegistry(Registry* registry) {
+	printf("Registry:\tlist: %x\n\tsrc:%x\n\ttime:%x\n\tcode:%x\n\tstart:%x\n\tend:%x\n", registry->list,registry->src,registry->time_sorted, registry->code_sorted,registry->start_sorted,registry->end_sorted);
 	return;
 }
 
@@ -381,7 +387,7 @@ void searchDeparture(Registry* routes, char* station) {
 void printLog(Route** routes, int len, boolean toFile){
 	FILE* fout;
 	if(toFile) {
-		if((fout = fopen("Lab01/output.txt", "w")) == NULL){
+		if((fout = fopen(DEFAULT_OUTPUT, "w")) == NULL){
 			printf("An error occurred during output-file opening, aborting\n");
 			return;
 		}
@@ -395,16 +401,17 @@ void printLog(Route** routes, int len, boolean toFile){
 	return;
 }
 
-boolean selezionaDati(Registry* routes, comando e) {
+Registry* selezionaDati(Registry* routes, comando e) {
 	char info[MAX_LEN];
 	char check;
 	switch(e){
         case r_leggi:
+        	freeRegistry(routes);
         	check = getchar();
 			if(check != '\n' && scanf("%s", info) == 1)
-        		printf(readRegistry(info, routes) == TRUE ? "Read file with success\n" : "Error while reading from file\n");
+        		routes = readRegistry(info, routes);
             else
-            	printf(readRegistry(DEFAULT_PATH, routes) == TRUE? "Read default-file with success\n" : "Error while reading from default-file\n");
+            	routes = readRegistry(DEFAULT_PATH, routes);
         break;
 		case r_stampa:
 			check = getchar();
@@ -456,12 +463,12 @@ boolean selezionaDati(Registry* routes, comando e) {
 		case r_fine:
 			printf("\t---\texiting program \t---\n");
             freeRegistry(routes);
-			return FALSE;
+			return NULL;
 			break;
         default:
         	printf("An unexpected error occurred, terminating ...\n");
-			return FALSE;
+			return NULL;
     }
 
-	return TRUE;
+	return routes;
 }
