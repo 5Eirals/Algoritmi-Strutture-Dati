@@ -43,8 +43,9 @@ void fprintItem(FILE* f, Item item);
 void fprintList(FILE* f, Link list);
 Link readFile(char* path, Link list);
 Link readTerminal(Link list);
-Link searchCode(Link list, char* code);
-Link removeCode(Link list, char* code);
+Item searchCode(Link list, char* code);
+Item deleteCode(Link list, char* code);
+Item deleteDate(Link list, Date start, Date end);
 Command getCommand();
 int executeCommand(Link *list, Command c);
 
@@ -89,6 +90,18 @@ void copyItem(Item* dest, Item* src) {
     return;
 }
 
+Item itemNull(){
+	Item item;
+   	item.cap= -1;
+    return item;
+}
+
+boolean isItemNull(Item item){
+	if(item.cap == -1)
+          return TRUE;
+    return FALSE;
+}
+
 Link newNode(Item item, Link next) {
 	Link x = (Link)malloc(sizeof(Node));
     if(x == NULL)
@@ -106,7 +119,7 @@ Link insertSorted(Link head, Item item) {
 		head = newNode(item, head);
         return head;
 	}
-	for(i, previous; i != NULL; previous = i, i = i->next) {
+	for(; i != NULL; previous = i, i = i->next) {
 		if(compareDates(item.birthday, i->item.birthday) < 0){
 			if(i == head) //check head insertion
 				head = newNode(item, head);
@@ -163,27 +176,31 @@ Command getCommand() {
 }
 
 int executeCommand(Link *list, Command c) {
-  	Link ret;
+  	Item buffer;
+	Date start, end;
 	char info[MAX_LEN];
 	char check;
+
 	switch (c) {
         case r_read:
           	check = getchar();
 			if(check != '\n' && scanf("%s", info) == 1){
-            	*list = readFile(info, *list);
-			} else {
-            	*list = readTerminal(*list);
-			}
+				*list = readFile(info, *list);
+            } else {
+            	printf("Insert <code> <name> <surname> <birthday> <city> <address> <CAP>:\n");
+                *list = readTerminal(*list);
+            }
             break;
         case r_print:
         	check = getchar();
 			if(check != '\n' && scanf("%s", info) == 1){
                 FILE *f;
-                if((f = fopen(info, "r")) == NULL){
+                if((f = fopen(info, "w")) == NULL){
                 	printf("An error occurred during input-file opening, terminating\n");
                     return FILE_ERROR;
                 }
 				fprintList(f, *list);
+				fclose(f);
 			} else {
                 fprintList(stdout, *list);
 			}
@@ -194,11 +211,11 @@ int executeCommand(Link *list, Command c) {
                 printf("Insert search key <code>: ");
             	scanf("%s", info);
             }
-			ret = searchCode(*list, info);
-			if(ret != NULL){
-				fprintItem(stdout, ret->item);
-			} else {
+			buffer = searchCode(*list, info);
+			if(isItemNull(buffer)){
 				printf("No match found for code <%s>\n", info);
+			} else {
+				fprintItem(stdout, buffer);
 			}
             break;
         case r_canc_code:
@@ -207,14 +224,30 @@ int executeCommand(Link *list, Command c) {
 				printf("Insert search key <code>: ");
 				scanf("%s", info);
 			}
-            //ret = removeCode(*list, info);
-			if(ret != NULL){
-                printf("Removed ");
-				fprintItem(stdout, ret->item);
-			} else {
+            buffer = deleteCode(*list, info);
+			if(isItemNull(buffer)){
 				printf("No match found for code <%s>\n", info);
+			} else {
+                printf("Removed: ");
+				fprintItem(stdout, buffer);
 			}
             break;
+		case r_canc_date:
+			check = getchar();
+			if(check != '\n' && scanf(" %d/%d/%d", &start.dd, &start.mm, &start.yy) == 3)
+				scanf(" %d/%d/%d", &end.dd, &end.mm, &end.yy);
+			else{
+				printf("Inserire la data di Inizio: <yyyy/mm/dd>\n");
+				scanf(" %d/%d/%d", &start.dd, &start.mm, &start.yy);
+				printf("Inserire la data di Fine: <yyyy/mm/dd>\n");
+				scanf(" %d/%d/%d", &end.dd, &end.mm, &end.yy);
+			}
+
+			while (!isItemNull(buffer = deleteDate(*list, start, end))) {
+				printf("Removed: ");
+				fprintItem(stdout, buffer);
+			}
+		break;
         case r_end:
         	freeList(*list);
         	printf("\t---\texiting program \t---\n");
@@ -234,7 +267,7 @@ void fprintDate(FILE* f, Date d) {
 void fprintItem(FILE* f, Item item) {
 	fprintf(f, "CODE: %s\n\t%s %s\n\t", item.code, item.name, item.surname);
     fprintDate(f, item.birthday);
-    fprintf(f, "\t%s\n\t%s\n\tcap: %d\n", item.city, item.address, item.cap);
+    fprintf(f, "\t%s\n\t%s\n\tcap: %05d\n", item.city, item.address, item.cap);
 }
 
 void fprintList(FILE* f, Link list) {
@@ -265,24 +298,67 @@ Link readFile(char* path, Link list) {
     		printf("An error occurred durinng input-file reading, terminating\n");
     		return NULL;
     	} else {
-    		fprintItem(stdout, holder);
-    		printf("Calling insertSorted\n");
         	list = insertSorted(list, holder);
     	}
     }
-
+	fclose(f);
     return list;
 }
 
 Link readTerminal(Link list) {
+	Item holder;
+	while(scanf("%s %s %s %d/%d/%d %s %s %d",
+                    holder.code,
+					holder.name,
+                    holder.surname,
+					&holder.birthday.dd,
+					&holder.birthday.mm,
+					&holder.birthday.yy,
+                    holder.city,
+					holder.address,
+                    &holder.cap) != 9){
+        printf("Format Error - Ensure the data respect the entry-fields <date format: dd/mm/yyyy> \n");
+    }
+
+	list = insertSorted(list, holder);
 	return list;
 }
 
-Link searchCode(Link list, char* code) {
+Item searchCode(Link list, char* code) {
+	Item holder;
 	for(Link i = list; i != NULL; i = i->next) {
 		if (strcmp(code, i->item.code) == 0)
-        	return i;
+        	return i->item;
 	}
 
-    return NULL;
+    return itemNull();
+}
+
+Item deleteCode(Link list, char* code) {
+	Item holder;
+	Link i = list, previous = NULL;
+	for(; i != NULL; previous = i, i = i->next) {
+		if(strcmp(code, i->item.code) == 0){
+			previous->next = i->next;
+            holder = i->item;
+            free(i);
+            return holder;
+		}
+	}
+
+    return itemNull();
+}
+
+Item deleteDate(Link list, Date start, Date end){
+	Item holder;
+	Link i = list, previous = NULL;
+	for(; i != NULL; previous = i, i = i->next) {
+		if(compareDates(i->item.birthday, start) > 0 && compareDates(i->item.birthday, end) < 0){
+			previous->next = i->next;
+			holder = i->item;
+			free(i);
+			return holder;
+		}
+	}
+	return itemNull();
 }

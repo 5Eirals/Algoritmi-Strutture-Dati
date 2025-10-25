@@ -109,7 +109,7 @@ Registry* readRegistry(char* path, Registry* registry){
 
 	if((fin = fopen(path, "r")) == NULL){
 		printf("An error occurred during input-file opening, terminating\n");
-		return FILE_ERROR;
+		return NULL;
 	}
 
 	registry = (Registry*)malloc(sizeof(Registry));
