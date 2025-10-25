@@ -44,8 +44,8 @@ void fprintList(FILE* f, Link list);
 Link readFile(char* path, Link list);
 Link readTerminal(Link list);
 Item searchCode(Link list, char* code);
-Item deleteCode(Link list, char* code);
-Item deleteDate(Link list, Date start, Date end);
+Item deleteCode(Link* list, char* code);
+Item deleteDate(Link* list, Date start, Date end);
 Command getCommand();
 int executeCommand(Link *list, Command c);
 
@@ -224,7 +224,7 @@ int executeCommand(Link *list, Command c) {
 				printf("Insert search key <code>: ");
 				scanf("%s", info);
 			}
-            buffer = deleteCode(*list, info);
+            buffer = deleteCode(list, info);
 			if(isItemNull(buffer)){
 				printf("No match found for code <%s>\n", info);
 			} else {
@@ -243,7 +243,7 @@ int executeCommand(Link *list, Command c) {
 				scanf(" %d/%d/%d", &end.dd, &end.mm, &end.yy);
 			}
 
-			while (!isItemNull(buffer = deleteDate(*list, start, end))) {
+			while (!isItemNull(buffer = deleteDate(list, start, end))) {
 				printf("Removed: ");
 				fprintItem(stdout, buffer);
 			}
@@ -334,29 +334,43 @@ Item searchCode(Link list, char* code) {
     return itemNull();
 }
 
-Item deleteCode(Link list, char* code) {
+Item deleteCode(Link* list, char* code) {
 	Item holder;
-	Link i = list, previous = NULL;
+	Link i = *list, previous = NULL;
 	for(; i != NULL; previous = i, i = i->next) {
 		if(strcmp(code, i->item.code) == 0){
-			previous->next = i->next;
-            holder = i->item;
-            free(i);
-            return holder;
+			if (previous == NULL) {
+				holder = i->item;
+				*list = i->next;
+				free(i);
+			} else {
+				previous->next = i->next;
+				holder = i->item;
+				free(i);
+			}
+			return holder;
 		}
 	}
 
     return itemNull();
 }
 
-Item deleteDate(Link list, Date start, Date end){
+Item deleteDate(Link* list, Date start, Date end){
 	Item holder;
-	Link i = list, previous = NULL;
-	for(; i != NULL; previous = i, i = i->next) {
+	Link i = *list, previous = NULL;
+	for(;i != NULL; previous = i, i = i->next) {
+		fprintDate(stdout, i->item.birthday);
+		printf("\n");
 		if(compareDates(i->item.birthday, start) > 0 && compareDates(i->item.birthday, end) < 0){
-			previous->next = i->next;
-			holder = i->item;
-			free(i);
+			if (previous == NULL) {
+				holder = i->item;
+				*list = i->next;
+				free(i);
+			} else {
+				previous->next = i->next;
+				holder = i->item;
+				free(i);
+			}
 			return holder;
 		}
 	}

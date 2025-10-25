@@ -6,7 +6,7 @@
 int majority(int* a, int N );
 
 int main(){
-	int vec[LEN] = {3, 3, 9, 4 ,3, 5, 3};
+	int vec[LEN] = {3, 3, 9, 4 ,2, 5, 3};
 
     int maj = majority(vec, LEN);
 
@@ -20,16 +20,22 @@ int main(){
         
 }
 
-int majority(int* a, int N ){ //how to implement backtracking?
+int majority(int* a, int N ){ //solo divide et impera
+	if(N == 1)
+		return *a;
 
-	for(int i = 1; i < N; i++){
-		printf("Looking: %d\n", a[0]);
-        if(a[0] == a[i]){
-        	printf("Read: %d at i:%d\n", a[i], i);
+	int middle = N/2;
+	int left = majority(a, N-middle);
+	int right = majority(a+middle, N-middle);
 
-        }
-
-	}
-
+	if (left == right)
+		return left;
+	if (left == -1)
+		if (right != -1)
+			return right;
+	if (right == -1)
+		if (left != -1)
+			return left;
 	return -1;
+
 }
