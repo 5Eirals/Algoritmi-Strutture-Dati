@@ -28,7 +28,7 @@ int combinazioni(int pos, int* val, int* sol, int start, int n, int k, int count
 
 	for(int i = start; i < n; i++){
 		sol[pos] = val[i];
-		count = combinazioni(pos + 1, val, sol, i+1, n, k, count);
+		count = combinazioni(pos+1, val, sol, i+1, n, k, count);
 	}
 	return count;
 }

@@ -32,7 +32,7 @@ int disposizioni(int pos, int* val, int* sol, int *mark, int n, int k, int count
     	if(mark[i] == 0){
         	mark[i] = 1;
             sol[pos] = val[i];
-            count = disposizioni(pos + 1, val, sol, mark, n, k, count);
+            count = disposizioni(pos+1, val, sol, mark, n, k, count);
             mark[i] = 0;
     	}
     }
