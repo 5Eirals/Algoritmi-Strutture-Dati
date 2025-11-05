@@ -13,6 +13,7 @@ typedef struct {
 void printVertexCover(Arch* arches, int* nodes, int N, int E);
 void vertexCoverPowerset(int pos, Arch* arches, int* nodes, int* sol, int start, int N, int E);
 bool checkCover(Arch* arches, int* nodes, int N, int E);
+
 int main() {
 	FILE* fin;
     int a, b;

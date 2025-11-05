@@ -17,47 +17,51 @@ typedef struct{
 
 int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckless max);
 int makeNeckless(Neckless base, Neckless max);
-int readNeckless(Neckless* total, char* path);
+Neckless* readNeckless(Neckless* total, char* path, int* N);
 void freeNecklesses(Neckless* total, int N);
 void printNeckless(Neckless neckless);
-Neckless newNeckless();
+Neckless newNeckless(Neckless New);
 
 int main() {
-    char* path = "Lab04/E3/very_easy_test_set.txt";
+    char* path = "Lab04/E3/easy_test_set.txt";
+    int N;
     Neckless* total;
-    int N = readNeckless(total, path);
-    Neckless max = newNeckless();
+    total = readNeckless(total, path, &N);
+
 
     for (int i = 0; i < N; i++) {
+        Neckless max;
+        max = newNeckless(max);
         printf("TEST #%d\n", i+1);
+        printf("Base: ");
         printNeckless(total[i]);
         printf("Combinazioni valide: %d, Collana massima di lunghezza: \n",
-            makeNeckless(total, max));
+            makeNeckless(total[i], max));
         printNeckless(max);
         printf("\n");
+        free(max);
     }
 
-    free(max);
+
     freeNecklesses(total, N);
     return 0;
 }
 
-int readNeckless(Neckless* total, char* path){
-    int N;
+Neckless* readNeckless(Neckless* total, char* path, int* N){
     FILE* f;
     if((f=fopen(path, "r"))==NULL){
         printf("An error occurred while opening file, terminating...\n");
         return ERROR;
     }
-    fscanf(f, "%d", &N);
-    total = (Neckless*)malloc(N*sizeof(Neckless));
-    for(int i=0; i<N; i++){
-        total[i] = (Neckless)malloc(sizeof(neckless_s));
+    fscanf(f, "%d", N);
+    total = (Neckless*)malloc(*N *sizeof(Neckless));
+    for(int i=0; i < *N; i++){
+        total[i] = (Neckless)malloc(sizeof(Neckless));
         fscanf(f, "%d %d %d %d", &total[i]->z, &total[i]->r, &total[i]->t, &total[i]->s);
         total[i]->len = total[i]->s + total[i]->t + total[i]->r + total[i]->z;
     }
 
-    return N;
+    return total;
 }
 
 void freeNecklesses(Neckless* total, int N){
@@ -67,14 +71,14 @@ void freeNecklesses(Neckless* total, int N){
     free(total);
 }
 
-Neckless newNeckless() {
-    Neckless neckless = (Neckless)malloc(sizeof(neckless_s));
-    neckless->z = 0;
-    neckless->r = 0;
-    neckless->t = 0;
-    neckless->s = 0;
-    neckless->len = 0;
-    return neckless;
+Neckless newNeckless(Neckless New) {
+    New = (Neckless)malloc(sizeof(neckless_s));
+    New->z = 0;
+    New->r = 0;
+    New->t = 0;
+    New->s = 0;
+    New->len = 0;
+    return New;
 }
 
 void printNeckless(Neckless neckless){
@@ -84,7 +88,8 @@ void printNeckless(Neckless neckless){
 
 int makeNeckless(Neckless base, Neckless max) {
     int count = 0;
-    Neckless neckless = newNeckless();
+    Neckless neckless;
+    neckless = newNeckless(neckless);
 
     count += necklessPerm(zaffiro, base, neckless, count, max);
     count += necklessPerm(rubino, base, neckless, count, max);
@@ -97,7 +102,6 @@ int makeNeckless(Neckless base, Neckless max) {
 
 int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckless max) {
     bool end = FALSE;
-
     switch (last) {
         case zaffiro:
             if (base->z > 0) {
@@ -105,6 +109,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->z += 1;
                 neckless->len += 1;
 
+                //printf("zaffiro ");
                 count += necklessPerm(zaffiro, base, neckless, count, max);
 
                 base->z += 1;
@@ -116,6 +121,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->r += 1;
                 neckless->len += 1;
 
+                //printf("rubino ");
                 count += necklessPerm(rubino, base, neckless, count, max);
 
                 base->r += 1;
@@ -132,6 +138,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->s += 1;
                 neckless->len += 1;
 
+                //printf("smeraldo ");
                 count += necklessPerm(smeraldo, base, neckless, count, max);
 
                 base->s += 1;
@@ -143,6 +150,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->t += 1;
                 neckless->len += 1;
 
+                //printf("topazio ");
                 count += necklessPerm(topazio, base, neckless, count, max);
 
                 base->t += 1;
@@ -159,6 +167,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->z += 1;
                 neckless->len += 1;
 
+                //printf("zaffiro ");
                 count += necklessPerm(zaffiro, base, neckless, count, max);
 
                 base->z += 1;
@@ -170,6 +179,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->r += 1;
                 neckless->len += 1;
 
+                //printf("rubino ");
                 count += necklessPerm(rubino, base, neckless, count, max);
 
                 base->r += 1;
@@ -186,6 +196,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->s += 1;
                 neckless->len += 1;
 
+                //printf("smeraldo ");
                 count += necklessPerm(smeraldo, base, neckless, count, max);
 
                 base->s += 1;
@@ -197,6 +208,7 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
                 neckless->t += 1;
                 neckless->len += 1;
 
+                //printf("topazio ");
                 count += necklessPerm(topazio, base, neckless, count, max);
 
                 base->t += 1;
@@ -213,6 +225,8 @@ int necklessPerm(pietre last, Neckless base, Neckless neckless, int count, Neckl
     }
 
     if (end == TRUE) {
+        //printf("\n#%d found combo: ", count);
+        //printNeckless(neckless);
         if (neckless->len > max-> len) {
             max->len = neckless->len;
             max->s = neckless->s;
