@@ -18,11 +18,15 @@ typedef struct{
 Setlist* readSongs(char* path);
 void freeSetlist(Setlist* setlist);
 void printSetlist(Setlist setlist);
+int printPlaylists(int pos, Playlist* playlist, char** sol, int n, int count);
 
 int main() {
     char* path = "Lab04/E2/brani.txt";
+    int count = 0;
     Setlist* setlist = readSongs(path);
-    printSetlist(*setlist);
+    char** sol = (char**)malloc(setlist->len * sizeof(char*));
+    count = printPlaylists(0, setlist->playlist, sol, setlist->len, count);
+    printf("Combinazioni: %d\n", count);
 }
 
 void printSetlist(Setlist setlist){
@@ -65,4 +69,19 @@ void freeSetlist(Setlist* setlist){
 	}
 	free(setlist->playlist);
     free(setlist);
+}
+
+int printPlaylists(int pos, Playlist* playlist, char** sol, int n, int count){
+	int i;
+	if (pos >= n) {
+		for (i = 0; i < n; i++)
+			printf("%s ", sol[i]);
+		printf("\n");
+		return ++count;
+	}
+	for (i = 0; i < playlist[pos].len; i++) {
+		sol[pos] = playlist[pos].songs[i];
+		count = printPlaylists(pos+1, playlist, sol, n, count);
+	}
+	return count;
 }
