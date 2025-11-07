@@ -27,7 +27,7 @@ bool isValid(Queue* Q);
 
 int main() {
 	int N;
-    char* path = "Lab05/E1/att.txt";
+    char* path = "Lab05/E1/att1.txt";
     att* V;
     V = readActivities(path, V, &N);
 
@@ -77,11 +77,6 @@ void printQueue(Queue* Q) {
 	printf("\nDuration: %d\n", Q->duration);
 }
 
-// bool isValid(att prev, att next) {
-// 	if (next.start > prev.end)
-// 		return TRUE;
-// 	return FALSE;
-// }
 bool isValid(Queue* Q) {
 	for (int i = 1; i < Q->len; i++)
 		if (Q->attList[i].start < Q->attList[i - 1].end)
@@ -134,7 +129,7 @@ void attSel(int N, att* V) {
 
 void attPowerset(int pos, att* queue, Queue* sol, int n, int start, Queue* max) {
 	if (start >= n){
-		if (isValid(sol) && sol->duration > max->duration) {
+		if (sol->duration > max->duration) {
 			max->duration = sol->duration;
 			max->len = sol->len;
 			for(int i = 0; i < max->len; i++)
@@ -146,7 +141,14 @@ void attPowerset(int pos, att* queue, Queue* sol, int n, int start, Queue* max) 
 		sol->attList[pos] = queue[i];
 		sol->duration += queue[i].duration;
 		sol->len++;
-		attPowerset(pos + 1, queue, sol, n, i+1, max);
+		if (pos > 0) {
+			if (isValid(sol)) {
+				attPowerset(pos + 1, queue, sol, n, i+1, max);
+			}
+		} else {
+			attPowerset(pos + 1, queue, sol, n, i+1, max);
+		}
+
 		sol->len--;
 		sol->duration -= queue[i].duration;
 	}
