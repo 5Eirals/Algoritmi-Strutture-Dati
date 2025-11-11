@@ -18,11 +18,9 @@ typedef struct {
 att* readActivities(char* path, att* V, int* N);
 void attSel(int N, att* V);
 void printActivity(att A);
-void attPerm(int pos, att* queue, Queue* sol, int* mark, int n, Queue* max);
 void attPowerset(int pos, att* queue, Queue* sol, int n, int start, Queue* max);
 Queue* newQueue(Queue* Q, int N);
 void freeQueue(Queue* Q);
-//bool isValid(att a, att b);
 bool isValid(Queue* Q);
 
 int main() {
@@ -90,7 +88,6 @@ void attSel(int N, att* V) {
 	best = newQueue(best, N);
 	int* mark = (int*)calloc(N, sizeof(int));
 
-	//attPerm(0, V, sol, mark, N, best);
 	attPowerset(0, V, sol, N, 0, best);
 
 	printf("Best Queue: ");
@@ -100,32 +97,6 @@ void attSel(int N, att* V) {
 	freeQueue(best);
 	freeQueue(sol);
 }
-
-// void attPerm(int pos, att* queue, Queue* sol, int* mark, int n, Queue* max){
-// 	if(pos >= n){
-// 		printQueue(sol);
-// 		if (isValid(sol) && sol->duration > max->duration) {
-// 			printf("found valid max;\n");
-// 			max->duration = sol->duration;
-// 			max->len = sol->len;
-// 			for(int i = 0; i < max->len; i++)
-// 				max->attList[i] = sol->attList[i];
-// 		}
-// 		return;
-// 	}
-//
-// 	for(int i = 0; i < n; i++){
-// 		if(mark[i] == 0){
-// 			mark[i] = 1;
-// 			sol->attList[pos] = queue[i];
-// 			sol->duration += queue[i].duration;
-// 			sol->len++;
-// 			attPerm(pos + 1, queue, sol, mark, n, max);
-// 			mark[i] = 0;
-// 		}
-// 	}
-// 	return;
-// }
 
 void attPowerset(int pos, att* queue, Queue* sol, int n, int start, Queue* max) {
 	if (start >= n){
