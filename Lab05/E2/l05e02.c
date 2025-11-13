@@ -9,26 +9,28 @@ typedef struct {
 typedef struct {
 	Tube vertical;
     Tube horizontal;
-} *Tile;
+} tile_s, *Tile;
 
 Tile* readTiles(char* path, Tile* list, int* N);
 int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C);
 void freeBoard(int** table, int R);
 void printTile(Tile tile);
 void printBoard(int** board, Tile* tiles, int R, int C);
+int searchMax(int** board, Tile* tiles, int* mark, int R, int C);
 
 int main(){
 	char* tiles_path = "Lab05/E2/tiles.txt";
-	char* board_path = "Lab05/E2/tiles.txt";
-	int N, R, C, *mark, **board;
+	char* board_path = "Lab05/E2/board.txt";
+	int N, R, C;
     Tile* tiles;
+	int** board;
 
     tiles = readTiles(tiles_path, tiles, &N);
-    mark = calloc(N, sizeof(int));
-    board = readBoard(board_path, board, tiles, mark, &R, &C);
+    int *mark = (int *) calloc(N, sizeof(int));
+	board = readBoard(board_path, board, tiles, mark, &R, &C);
     printBoard(board, tiles, R, C);
 
-	//function
+	int max_score = searchMax(board, tiles, mark, R, C);
 
 	free(tiles);
     freeBoard(board, R);
@@ -42,11 +44,16 @@ Tile* readTiles(char* path, Tile* list, int* N){
         return NULL;
     }
     fscanf(file, "%d", N);
-	printf("N = %d\n", *N);
     list = malloc(*N * sizeof(Tile));
+
     for(int i = 0; i < *N; i++){
-    	fscanf(file, " %c %d %c %d", &(list[i]->horizontal.color), &(list[i]->horizontal.value), &(list[i]->vertical.color), &(list[i]->horizontal.value));
-    	printTile(list[i]);
+    	list[i] = (Tile)malloc(sizeof(tile_s));
+    	fscanf(file, " %c %d %c %d ",
+    		&(list[i]->horizontal.color),
+    		&(list[i]->horizontal.value),
+    		&(list[i]->vertical.color),
+    		&(list[i]->vertical.value)
+    		);
     }
 
     fclose(file);
@@ -63,9 +70,9 @@ int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C)
     fscanf(file, "%d %d", R, C);
     table = malloc(*R * sizeof(int*));
     for(int i = 0; i < *R; i++){
-    	table[i] = malloc(*C * sizeof(int));
+    	table[i] = (int*)malloc(*C * sizeof(int));
         for(int j = 0; j < *C; j++){
-        	fscanf(file, "%d/%d", &a, &b);
+        	fscanf(file, "%d / %d", &a, &b);
             if(a == -1){
             	table[i][j] = a;
             	continue;
@@ -78,6 +85,7 @@ int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C)
             	tiles[a]->horizontal.color = temp_c;
                 tiles[a]->horizontal.value = temp_v;
             }
+        	table[i][j] = a;
             mark[a] = 1;
         }
     }
@@ -98,7 +106,7 @@ void printTile(Tile tile){
           return;
 	}
     printf("___|%c|___\n"
-           " %c| | %d \n"
+           " %c | | %d \n"
            "```|%d|```\n", tile->vertical.color, tile->horizontal.color, tile->horizontal.value, tile->vertical.value);
 }
 
@@ -113,7 +121,7 @@ void printBoard(int** board, Tile* tiles, int R, int C){
                         printf("___|%c|___", tiles[board[i/3][j]]->vertical.color);
                         break;
                     case 1:
-                    	printf(" %c| | %d ", tiles[board[i/3][j]]->horizontal.color, tiles[board[i/3][j]]->horizontal.value);
+                    	printf(" %c | | %d ", tiles[board[i/3][j]]->horizontal.color, tiles[board[i/3][j]]->horizontal.value);
                         break;
                     case 2:
                     	printf("```|%d|```", tiles[board[i/3][j]]->vertical.value);
@@ -122,4 +130,24 @@ void printBoard(int** board, Tile* tiles, int R, int C){
         }
         printf("\n");
 	}
+}
+
+int searchMax(int** board, Tile* tiles, int* mark, int R, int C) {
+	int max = 0;
+	boardPerm(0, board, tiles, mark, R, C, &max);
+	return 0;
+}
+
+void boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int *max) {
+	int* perm = (int*)malloc(R*C * sizeof(int));
+	for(int i = 0; i < R*C; i++) {
+		if(mark[i] == 1) {
+			perm[pos] = i;
+		}
+	}
+
+}
+
+void permutations() {
+
 }

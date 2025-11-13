@@ -4,14 +4,12 @@
 int disposizioni(int pos, int* val, int* sol, int n, int k, int count);
 
 int main(){
-	int n = 4, k = 2, count=0;
+	int n = 2, k = 4, count=0;
 	int* val = (int*)malloc(n*sizeof(int));
 	int* sol = (int*)malloc(k*sizeof(int));
 
-	val[0] = 1;
-	val[1] = 0;
-	val[2] = 9;
-	val[3] = 4;
+	val[0] = 0;
+	val[1] = 1;
 	printf("\nnumero di disposizioni: %d\n", disposizioni(0, val, sol, n, k, count));
 
 	free(val);
