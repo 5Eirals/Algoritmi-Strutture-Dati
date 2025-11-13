@@ -11,12 +11,19 @@ typedef struct {
     Tube horizontal;
 } tile_s, *Tile;
 
+int count = 0;
+
 Tile* readTiles(char* path, Tile* list, int* N);
 int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C);
 void freeBoard(int** table, int R);
 void printTile(Tile tile);
 void printBoard(int** board, Tile* tiles, int R, int C);
 int searchMax(int** board, Tile* tiles, int* mark, int R, int C);
+
+int boardPerm(int pos, int **board, Tile *tiles, int *mark, int R, int C, int max);
+int checkScore(int** board, Tile* tiles, int R, int C);
+Tile rotateTile(Tile tile);
+
 
 int main(){
 	char* tiles_path = "Lab05/E2/tiles.txt";
@@ -30,7 +37,8 @@ int main(){
 	board = readBoard(board_path, board, tiles, mark, &R, &C);
     printBoard(board, tiles, R, C);
 
-	int max_score = searchMax(board, tiles, mark, R, C);
+	int max_score = boardPerm(0, board, tiles, mark, R, C, -1);
+	printf("max_score = %d\n", max_score);
 
 	free(tiles);
     freeBoard(board, R);
@@ -79,17 +87,27 @@ int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C)
             }
             if(b){
             	char temp_c = tiles[a]->vertical.color;
-                int temp_v = tiles[a]->vertical.value;
-                tiles[a]->vertical.color = tiles[a]->horizontal.color;
+            	int temp_v = tiles[a]->vertical.value;
+            	tiles[a]->vertical.color = tiles[a]->horizontal.color;
             	tiles[a]->vertical.value = tiles[a]->horizontal.value;
             	tiles[a]->horizontal.color = temp_c;
-                tiles[a]->horizontal.value = temp_v;
+            	tiles[a]->horizontal.value = temp_v;
             }
         	table[i][j] = a;
             mark[a] = 1;
         }
     }
     return table;
+}
+
+Tile rotateTile(Tile tile) {
+	char temp_c = tile->vertical.color;
+	int temp_v = tile->vertical.value;
+	tile->vertical.color = tile->horizontal.color;
+	tile->vertical.value = tile->horizontal.value;
+	tile->horizontal.color = temp_c;
+	tile->horizontal.value = temp_v;
+	return tile;
 }
 
 
@@ -133,21 +151,60 @@ void printBoard(int** board, Tile* tiles, int R, int C){
 }
 
 int searchMax(int** board, Tile* tiles, int* mark, int R, int C) {
-	int max = 0;
-	boardPerm(0, board, tiles, mark, R, C, &max);
-	return 0;
+	int max = boardPerm(0, board, tiles, mark, R, C, 0);
+	return max;
 }
 
-void boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int *max) {
-	int* perm = (int*)malloc(R*C * sizeof(int));
-	for(int i = 0; i < R*C; i++) {
-		if(mark[i] == 1) {
-			perm[pos] = i;
+int boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max) {
+	if (pos >= R*C) {
+		//printf("call %d\n", ++count);
+		int score = checkScore(board, tiles, R, C);
+		if (score > max) {
+			printBoard(board, tiles, R, C);
+			printf("\n");
+			return score;
 		}
+		return max;
 	}
 
+	for (int i=0; i<R*C; i++)
+		if (mark[i] == 0) {
+			mark[i] = 1;
+			while (board[pos/C][pos%C] != -1)
+				pos++;
+			board[pos/C][pos%C] = i;
+			max = boardPerm(pos+1, board, tiles, mark, R, C, max);
+			mark[i] = 0;
+			board[pos/C][pos%C] = -1;
+		}
+	return max;
 }
 
-void permutations() {
+int checkScore(int** board, Tile* tiles, int R, int C) {
+	int rows = 0;
+	int cols = 0;
+	for(int i = 0; i < R; i++) {
+		int r_diff = 0;
+		int r_buff = 0;
+		int c_diff = 0;
+		int c_buff = 0;
+		char r_last = tiles[board[i][0]]->horizontal.color;
+		char c_last = tiles[board[0][i]]->vertical.color;
+		for(int j = 0; j < C; j++) {
+			if(tiles[board[i][j]]->horizontal.color != r_last) r_diff++;
+			r_last = tiles[board[i][j]]->horizontal.color;
+			//printf("R:(%c - %c) ", r_last, tiles[board[i][j]]->horizontal.color);
+			r_buff += tiles[board[i][j]]->horizontal.value;
+			if(tiles[board[j][i]]->vertical.color != c_last) c_diff++;
+			c_last = tiles[board[j][i]]->vertical.color;
+			// printf("C:(%c - %c)\n", c_last, tiles[board[j][i]]->vertical.color);
+			c_buff += tiles[board[j][i]]->vertical.value;
+		}
+		// printf("r_diff = %d, c_diff = %d\n", r_diff, c_diff);
+		// printf("r_buff = %d, c_buff = %d\n", r_buff, c_buff);
+		if(r_diff == 0) rows += r_buff;
+		if(c_diff == 0) cols += c_buff;
+	}
 
+	return rows + cols;
 }
