@@ -4,7 +4,7 @@
 int disposizioni(int pos, int* val, int* sol, int n, int k, int count);
 
 int main(){
-	int n = 2, k = 4, count=0;
+	int n = 2, k = 9, count=0;
 	int* val = (int*)malloc(n*sizeof(int));
 	int* sol = (int*)malloc(k*sizeof(int));
 

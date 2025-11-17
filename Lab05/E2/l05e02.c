@@ -18,8 +18,7 @@ int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C)
 void freeBoard(int** table, int R);
 void printTile(Tile tile);
 void printBoard(int** board, Tile* tiles, int R, int C);
-int searchMax(int** board, Tile* tiles, int* mark, int R, int C);
-
+int checkRotated(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max);
 int boardPerm(int pos, int **board, Tile *tiles, int *mark, int R, int C, int max);
 int checkScore(int** board, Tile* tiles, int R, int C);
 Tile rotateTile(Tile tile);
@@ -150,21 +149,10 @@ void printBoard(int** board, Tile* tiles, int R, int C){
 	}
 }
 
-int searchMax(int** board, Tile* tiles, int* mark, int R, int C) {
-	int max = boardPerm(0, board, tiles, mark, R, C, 0);
-	return max;
-}
-
 int boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max) {
 	if (pos >= R*C) {
-		//printf("call %d\n", ++count);
-		int score = checkScore(board, tiles, R, C);
-		if (score > max) {
-			printBoard(board, tiles, R, C);
-			printf("\n");
-			return score;
-		}
-		return max;
+		printf("call %d\n", ++count);
+		return checkRotated(0, board, tiles, mark, R, C, max);
 	}
 
 	for (int i=0; i<R*C; i++)
@@ -177,6 +165,40 @@ int boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int ma
 			mark[i] = 0;
 			board[pos/C][pos%C] = -1;
 		}
+	return max;
+}
+
+int checkRotated(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max) {
+	if (pos >= R*C) {
+		printf("call %d\n", ++count);
+		int score = checkScore(board, tiles, R, C);
+		printBoard(board, tiles, R, C);
+		printf("\n");
+		if (score > max) {
+
+			return score;
+		}
+		return max;
+	}
+
+	max = checkRotated(pos+1, board, tiles, mark, R, C, max);
+	if (mark[pos] == 0) {
+		char temp_c = tiles[pos]->vertical.color;
+		int temp_v = tiles[board[pos/3][pos%3]]->vertical.value;
+		tiles[board[pos/3][pos%3]]->vertical.color = tiles[board[pos/3][pos%3]]->horizontal.color;
+		tiles[board[pos/3][pos%3]]->vertical.value = tiles[board[pos/3][pos%3]]->horizontal.value;
+		tiles[board[pos/3][pos%3]]->horizontal.color = temp_c;
+		tiles[board[pos/3][pos%3]]->horizontal.value = temp_v;
+
+		max = boardPerm(pos+1, board, tiles, mark, R, C, max);
+
+		// temp_c = tiles[board[pos/3][pos%3]]->vertical.color;
+		// temp_v = tiles[board[pos/3][pos%3]]->vertical.value;
+		// tiles[board[pos/3][pos%3]]->vertical.color = tiles[board[pos/3][pos%3]]->horizontal.color;
+		// tiles[board[pos/3][pos%3]]->vertical.value = tiles[board[pos/3][pos%3]]->horizontal.value;
+		// tiles[board[pos/3][pos%3]]->horizontal.color = temp_c;
+		// tiles[board[pos/3][pos%3]]->horizontal.value = temp_v;
+	}
 	return max;
 }
 
