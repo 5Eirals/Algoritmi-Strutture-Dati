@@ -14,12 +14,12 @@ typedef struct {
 int count = 0;
 
 Tile* readTiles(char* path, Tile* list, int* N);
-int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C);
+int** readBoard(char* path, int** table, Tile* tiles, int* mark, int *used, int* R, int* C);
 void freeBoard(int** table, int R);
 void printTile(Tile tile);
 void printBoard(int** board, Tile* tiles, int R, int C);
-int checkRotated(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max);
-int boardPerm(int pos, int **board, Tile *tiles, int *mark, int R, int C, int max);
+int checkRotated(int pos, int** board, Tile* tiles, int* mark,int *used, int R, int C, int max);
+int boardPerm(int pos, int **board, Tile *tiles, int *mark, int *used, int R, int C, int max);
 int checkScore(int** board, Tile* tiles, int R, int C);
 Tile rotateTile(Tile tile);
 
@@ -32,11 +32,11 @@ int main(){
 	int** board;
 
     tiles = readTiles(tiles_path, tiles, &N);
-    int *mark = (int *) calloc(N, sizeof(int));
-	board = readBoard(board_path, board, tiles, mark, &R, &C);
-    printBoard(board, tiles, R, C);
+    int *used = (int *) calloc(N, sizeof(int));
+	int *mark = (int *) calloc(N, sizeof(int));
+	board = readBoard(board_path, board, tiles, mark, used, &R, &C);
 
-	int max_score = boardPerm(0, board, tiles, mark, R, C, -1);
+	int max_score = boardPerm(0, board, tiles, mark, used, R, C, -1);
 	printf("max_score = %d\n", max_score);
 
 	free(tiles);
@@ -67,7 +67,7 @@ Tile* readTiles(char* path, Tile* list, int* N){
     return list;
 }
 
-int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C){
+int** readBoard(char* path, int** table, Tile* tiles, int* mark, int *used, int* R, int* C){
 	int a, b;
 	FILE* file;
 	if((file = fopen(path, "r"))==NULL){
@@ -94,6 +94,7 @@ int** readBoard(char* path, int** table, Tile* tiles, int* mark, int* R, int* C)
             }
         	table[i][j] = a;
             mark[a] = 1;
+        	used[a] = 1;
         }
     }
     return table;
@@ -149,10 +150,9 @@ void printBoard(int** board, Tile* tiles, int R, int C){
 	}
 }
 
-int boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max) {
+int boardPerm(int pos, int** board, Tile* tiles, int* mark, int *used, int R, int C, int max) {
 	if (pos >= R*C) {
-		printf("call %d\n", ++count);
-		return checkRotated(0, board, tiles, mark, R, C, max);
+		return checkRotated(0, board, tiles, mark, used, R, C, max);
 	}
 
 	for (int i=0; i<R*C; i++)
@@ -161,43 +161,34 @@ int boardPerm(int pos, int** board, Tile* tiles, int* mark, int R, int C, int ma
 			while (board[pos/C][pos%C] != -1)
 				pos++;
 			board[pos/C][pos%C] = i;
-			max = boardPerm(pos+1, board, tiles, mark, R, C, max);
+			max = boardPerm(pos+1, board, tiles, mark, used, R, C, max);
 			mark[i] = 0;
 			board[pos/C][pos%C] = -1;
 		}
 	return max;
 }
 
-int checkRotated(int pos, int** board, Tile* tiles, int* mark, int R, int C, int max) {
+int checkRotated(int pos, int** board, Tile* tiles, int* mark, int *used, int R, int C, int max) {
 	if (pos >= R*C) {
-		printf("call %d\n", ++count);
 		int score = checkScore(board, tiles, R, C);
-		printBoard(board, tiles, R, C);
-		printf("\n");
 		if (score > max) {
-
 			return score;
 		}
 		return max;
 	}
 
-	max = checkRotated(pos+1, board, tiles, mark, R, C, max);
-	if (mark[pos] == 0) {
+	max = checkRotated(pos+1, board, tiles, mark, used, R, C, max);
+	if (used[pos] == 0) {
+		used[pos] = 1;
 		char temp_c = tiles[pos]->vertical.color;
-		int temp_v = tiles[board[pos/3][pos%3]]->vertical.value;
-		tiles[board[pos/3][pos%3]]->vertical.color = tiles[board[pos/3][pos%3]]->horizontal.color;
-		tiles[board[pos/3][pos%3]]->vertical.value = tiles[board[pos/3][pos%3]]->horizontal.value;
-		tiles[board[pos/3][pos%3]]->horizontal.color = temp_c;
-		tiles[board[pos/3][pos%3]]->horizontal.value = temp_v;
+		int temp_v = tiles[pos]->vertical.value;
+		tiles[pos]->vertical.color = tiles[pos]->horizontal.color;
+		tiles[pos]->vertical.value = tiles[pos]->horizontal.value;
+		tiles[pos]->horizontal.color = temp_c;
+		tiles[pos]->horizontal.value = temp_v;
 
-		max = boardPerm(pos+1, board, tiles, mark, R, C, max);
-
-		// temp_c = tiles[board[pos/3][pos%3]]->vertical.color;
-		// temp_v = tiles[board[pos/3][pos%3]]->vertical.value;
-		// tiles[board[pos/3][pos%3]]->vertical.color = tiles[board[pos/3][pos%3]]->horizontal.color;
-		// tiles[board[pos/3][pos%3]]->vertical.value = tiles[board[pos/3][pos%3]]->horizontal.value;
-		// tiles[board[pos/3][pos%3]]->horizontal.color = temp_c;
-		// tiles[board[pos/3][pos%3]]->horizontal.value = temp_v;
+		max = boardPerm(pos+1, board, tiles, mark, used, R, C, max);
+		used[pos] = 0;
 	}
 	return max;
 }
@@ -215,15 +206,11 @@ int checkScore(int** board, Tile* tiles, int R, int C) {
 		for(int j = 0; j < C; j++) {
 			if(tiles[board[i][j]]->horizontal.color != r_last) r_diff++;
 			r_last = tiles[board[i][j]]->horizontal.color;
-			//printf("R:(%c - %c) ", r_last, tiles[board[i][j]]->horizontal.color);
 			r_buff += tiles[board[i][j]]->horizontal.value;
 			if(tiles[board[j][i]]->vertical.color != c_last) c_diff++;
 			c_last = tiles[board[j][i]]->vertical.color;
-			// printf("C:(%c - %c)\n", c_last, tiles[board[j][i]]->vertical.color);
 			c_buff += tiles[board[j][i]]->vertical.value;
 		}
-		// printf("r_diff = %d, c_diff = %d\n", r_diff, c_diff);
-		// printf("r_buff = %d, c_buff = %d\n", r_buff, c_buff);
 		if(r_diff == 0) rows += r_buff;
 		if(c_diff == 0) cols += c_buff;
 	}
