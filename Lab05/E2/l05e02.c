@@ -172,6 +172,8 @@ int checkRotated(int pos, int** board, Tile* tiles, int* mark, int *used, int R,
 	if (pos >= R*C) {
 		int score = checkScore(board, tiles, R, C);
 		if (score > max) {
+			printf("New max_score: %d\n", score);
+			printBoard(board, tiles, R, C);
 			return score;
 		}
 		return max;
