@@ -25,7 +25,8 @@ typedef struct {
     int N_objects;
 }inventory_s, *Inventory;
 
-Inventory freadInventory(char* path, Inventory invTable);
+Inventory freadInventory(char* path);
+void freeInventory(Inventory inventory);
 Object searchObject(Inventory invTable, char* name);
 void printObject(Object obj);
 

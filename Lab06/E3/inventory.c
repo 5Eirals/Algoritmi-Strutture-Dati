@@ -4,14 +4,14 @@
 
 #include "inventory.h"
 
-Inventory freadInventory(char* path, Inventory invTable){
+Inventory freadInventory(char* path){
 	FILE *file;
 	if ((file = fopen(path, "r")) == NULL){
         printf("--- File Error ---\n");
         return NULL;
 	}
 
-    invTable = (Inventory) malloc(sizeof(inventory_s));
+    Inventory invTable = (Inventory) malloc(sizeof(inventory_s));
     fscanf(file, "%d", &(invTable->N_objects));
     invTable->objects = (Objects) malloc((invTable->N_objects) * sizeof(object_s));
     for (int i = 0; i < invTable->N_objects; i++){
@@ -44,7 +44,7 @@ Object searchObject(Inventory invTable, char* name){
 
 void printObject(Object obj){
 	printf("*___________________________________________________________________________*\n"
-           "  %50s\tType: %50s\tStats:\n"
+           "  <%50s>\nType: <%50s>\nStats:\n"
            "  hp:%.3d mp:%.3d atk:%.3d def:%.3d mag:%.3d spr:%.3d\n"
            "*___________________________________________________________________________*\n",
          obj->name,
@@ -55,4 +55,9 @@ void printObject(Object obj){
          obj->stats.def,
          obj->stats.mag,
          obj->stats.spr);
+}
+
+void freeInventory(Inventory invTable){
+	free(invTable->objects);
+    free(invTable);
 }
