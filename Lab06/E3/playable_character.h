@@ -37,10 +37,14 @@ typedef struct{
     int len;
 } playables_s, *Playable_Characters;
 
-Playable_Characters freadPlayableCharacter(char* path);
+Playable_Characters freadPlayableCharacters(char* path);
 void freePlayableCharacter(Playable_Characters list);
 void insertCharacter(Playable_Characters list, Character character);
-void deleteCharacter(Playable_Characters list, char* id);
-Link searchCharacter(Playable_Characters list, char* code);
+Character deleteCharacter(Playable_Characters list, char* id);
+Character searchCharacter(Playable_Characters list, char* code);
 void printCharacterStats(Character character);
+void printAvailableInventory(Inventory inventory);
+void printAvailableCharacters(Playable_Characters list);
 Character scanfCharacter(FILE* src);
+int isNullCharacter(Character character);
+Character nullCharacter();

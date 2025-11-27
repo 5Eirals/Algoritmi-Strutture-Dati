@@ -4,6 +4,9 @@
 #endif
 
 #define MAX_LEN 50
+#define SEPARATOR "----------------------------------------------------"
+#define SPACER "                                 "
+#define STATS_LEN 42
 
 typedef struct stats_s{
 	int hp;
@@ -29,4 +32,5 @@ Inventory freadInventory(char* path);
 void freeInventory(Inventory inventory);
 Object searchObject(Inventory invTable, char* name);
 void printObject(Object obj);
+int max(int a, int b);
 

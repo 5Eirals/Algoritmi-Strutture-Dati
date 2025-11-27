@@ -42,19 +42,34 @@ Object searchObject(Inventory invTable, char* name){
     return NULL;
 }
 
+
+int max(int a, int b){
+	return a > b ? a : b;
+}
+
 void printObject(Object obj){
-	printf("*___________________________________________________________________________*\n"
-           "  <%50s>\nType: <%50s>\nStats:\n"
-           "  hp:%.3d mp:%.3d atk:%.3d def:%.3d mag:%.3d spr:%.3d\n"
-           "*___________________________________________________________________________*\n",
-         obj->name,
-         obj->type,
-         obj->stats.hp,
-         obj->stats.mp,
-         obj->stats.atk,
-         obj->stats.def,
-         obj->stats.mag,
-         obj->stats.spr);
+	int width = max(strlen(obj->name), strlen(obj->type)) + 2;
+        printf("%.*s\n", STATS_LEN, SEPARATOR);
+        printf(" Name: %*.*s%s\n",
+               width-strlen(obj->name),
+               width-strlen(obj->name),
+               SPACER,
+               obj->name
+               );
+        printf(" Class: %*.*s%s\n",
+               width-strlen(obj->type),
+               width-strlen(obj->type),
+               SPACER,
+               obj->type);
+        printf(" hp:%.3d mp:%.3d atk:%.3d def:%.3d mag:%.3d spr:%.3d\n",
+               obj->stats.hp,
+               obj->stats.mp,
+               obj->stats.atk,
+               obj->stats.def,
+               obj->stats.mag,
+               obj->stats.spr
+               );
+        printf("%.*s\n", STATS_LEN, SEPARATOR);
 }
 
 void freeInventory(Inventory invTable){
