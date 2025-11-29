@@ -49,7 +49,7 @@ int max(int a, int b){
 
 void printObject(Object obj){
 	int width = max(strlen(obj->name), strlen(obj->type)) + 2;
-        printf("%.*s\n", STATS_LEN, SEPARATOR);
+        printf("%.*s\n", MAX_LEN, SEPARATOR);
         printf(" Name: %*.*s%s\n",
                width-strlen(obj->name),
                width-strlen(obj->name),
@@ -69,7 +69,7 @@ void printObject(Object obj){
                obj->stats.mag,
                obj->stats.spr
                );
-        printf("%.*s\n", STATS_LEN, SEPARATOR);
+        printf("%.*s\n", MAX_LEN, SEPARATOR);
 }
 
 void freeInventory(Inventory invTable){
