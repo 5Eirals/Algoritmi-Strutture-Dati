@@ -1,0 +1,2 @@
+C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/cmake-build-debug/CMakeFiles/rebuild_cache.dir

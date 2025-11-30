@@ -11,6 +11,8 @@
 #define CODE_LEN 7
 #define MAX_EQUIP 8
 
+typedef enum {FALSE, TRUE} bool;
+
 typedef struct{
 	int inUse;
     Object vettEq[MAX_EQUIP];
@@ -42,9 +44,12 @@ void freePlayableCharacter(Playable_Characters list);
 void insertCharacter(Playable_Characters list, Character character);
 Character deleteCharacter(Playable_Characters list, char* id);
 Character searchCharacter(Playable_Characters list, char* code);
+Link selectCharacter(Playable_Characters list, char* id);
 void printCharacterStats(Character character);
 void printAvailableInventory(Inventory inventory);
 void printAvailableCharacters(Playable_Characters list);
 Character scanfCharacter(FILE* src);
 int isNullCharacter(Character character);
 Character nullCharacter();
+void addEquipment(Playable_Characters list, char* char_id, Inventory inv, char* item_code);
+void removeEquipment(Playable_Characters list, char* char_id, Inventory inv, char* item_code);

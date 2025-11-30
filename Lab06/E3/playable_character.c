@@ -2,7 +2,7 @@
 
 Character scanfCharacter(FILE* src){
 	Character holder;
-    fscanf(src, "%s %s %s %d %d %d %d %d %d",
+    if (fscanf(src, "%s %s %s %d %d %d %d %d %d",
                        holder.code,
                        holder.name,
                        holder.type,
@@ -12,8 +12,9 @@ Character scanfCharacter(FILE* src){
                        &holder.stats.def,
                        &holder.stats.mag,
                        &holder.stats.spr
-                       );
-	return holder;
+                       ) == 9)
+		return holder;
+	return nullCharacter();
 }
 
 void insertCharacter(Playable_Characters list, Character _character){
@@ -25,7 +26,6 @@ void insertCharacter(Playable_Characters list, Character _character){
     newNode->character.equip->inUse = 0;
     newNode->next = NULL;
 
-	printCharacterStats(_character);
 
     list->tail->next = newNode;
     list->tail = newNode;
@@ -35,7 +35,6 @@ void insertCharacter(Playable_Characters list, Character _character){
 
 Playable_Characters freadPlayableCharacters(char* path){
 	FILE* file;
-	printf("path: %s\n", path);
     if((file = fopen(path, "r"))==NULL){
     	printf("--- File Error ---\n");
         return NULL;
@@ -44,6 +43,9 @@ Playable_Characters freadPlayableCharacters(char* path){
     Playable_Characters list = (Playable_Characters)malloc(sizeof(playables_s));
     list->tail = (Link)malloc(sizeof(Node));
     list->head = (Link)malloc(sizeof(Node));
+
+	list->head->character = nullCharacter();
+
     list->tail = list->head;
     list->len = 0;
 
@@ -92,12 +94,20 @@ void freePlayableCharacter(Playable_Characters list){
 	freeList(list->head);
 }
 
-Character searchCharacter(Playable_Characters list, char* code){
+Character searchCharacter(Playable_Characters list, char* id){
 	for(Link head = list->head->next; head != NULL; head = head->next){
-          if(strcmp(code, head->character.code)==0)
+          if(strcmp(id, head->character.code)==0 || strcmp(id, head->character.name)==0)
             return head->character;
 	}
     return nullCharacter();
+}
+
+Link selectCharacter(Playable_Characters list, char* id) {
+	for(Link head = list->head->next; head != NULL; head = head->next){
+		if(strcmp(id, head->character.code)==0 || strcmp(id, head->character.name)==0)
+			return head;
+	}
+	return NULL;
 }
 
 static Character deleteCharacterCode(Playable_Characters list, char* code){
@@ -126,10 +136,73 @@ static Character deleteCharacterName(Playable_Characters list, char* name){
     return nullCharacter();
 }
 
+static bool checkCode(char* str) {
+	if (strlen(str)+1 == CODE_LEN)
+		if (str[0] == 'P' && str[1] == 'G')
+			return TRUE;
+	return FALSE;
+}
+
 Character deleteCharacter(Playable_Characters list, char* id){
-	if(strlen(id) > CODE_LEN)
+	if(checkCode(id))
           return deleteCharacterCode(list, id);
     return deleteCharacterName(list, id);
+}
+
+void addEquipment(Playable_Characters list, char* char_id, Inventory inv, char* item_id) {
+	Link cnode; Object item;
+
+	if ((cnode = selectCharacter(list, char_id)) == NULL) {
+		printf(" --- No character matches code or name <%s> ---\n", char_id);
+		return;
+	}
+
+	if (isNullCharacter(cnode->character)) {
+		printf(" --- Error, character is NULL ---\n");
+		return;
+	}
+
+	if ((item = searchObject(inv, item_id)) == NULL) {
+		printf(" --- No item matches name <%s> ---\n", item_id);
+		return;
+	}
+
+	if (cnode->character.equip->inUse == MAX_EQUIP) {
+		printf(" --- <%s> inventory is full, remove an object and try again ---\n", cnode->character.name);
+		return;
+	}
+
+	cnode->character.equip->vettEq[cnode->character.equip->inUse] = item;
+	cnode->character.equip->inUse++;
+	printf(" --- Added <%s> to <%s> inventory ---\n", item->name, cnode->character.name);
+	return;
+}
+
+void removeEquipment(Playable_Characters list, char* char_id, Inventory inv, char* item_id) {
+	Link cnode;
+
+	if ((cnode = selectCharacter(list, char_id)) == NULL) {
+		printf(" --- No character matches code or name <%s> ---\n", char_id);
+		return;
+	}
+
+	if (isNullCharacter(cnode->character)) {
+		printf(" --- Error, character is NULL ---\n");
+		return;
+	}
+
+	for (int i = 0; i < cnode->character.equip->inUse; i++) {
+		if (strcmp(cnode->character.equip->vettEq[i]->name,item_id) == 0) {
+			printf(" --- Removed <%s> from <%s> inventory ---\n",item_id, cnode->character.name);
+			for (int j = i; j < cnode->character.equip->inUse-1; j++) {
+				cnode->character.equip->vettEq[j] = cnode->character.equip->vettEq[j+1];
+			}
+			cnode->character.equip->inUse--;
+			return;
+		}
+	}
+
+	printf("--- <%s> already missing from <%s> inventory ---\n", item_id, cnode->character.name);
 }
 
 static Stats sumStats(Stats a, Stats b){
@@ -153,39 +226,39 @@ static Stats calcStats(Character character){
 
 static void printEquipment(Equipment e){
   	if(e->inUse == 0){
-          printf("< empty >\n");
+          printf("\t\t< empty >\n");
           return;
   	}
 
 	int len = e->inUse;
 	int widths[len];
 	for(int i = 0; i < len; i++)
-    	widths[i] = max(strlen(e->vettEq[i]->name), strlen(e->vettEq[i]->type)) + 2;
+    	widths[i] = max(strlen(e->vettEq[i]->name), strlen(e->vettEq[i]->type))+1;
     for(int i = 0; i < len; i++)
-    	printf(" %.*s ", widths[i], SEPARATOR);
+    	printf("|  %.*s ", widths[i], SEPARATOR);
     printf("\n");
     for(int i = 0; i < len; i++){
       	int padlen = widths[i] - strlen(e->vettEq[i]->name);
-    	printf(" %s%*.*s ", e->vettEq[i]->name, padlen, padlen, SPACER);
+    	printf("|  %s%*.*s ", e->vettEq[i]->name, padlen, padlen, SPACER);
     }
     printf("\n");
     for(int i = 0; i < len; i++){
       	int padlen = widths[i] - strlen(e->vettEq[i]->type);
-    	printf(" %s%*.*s ", e->vettEq[i]->type, padlen, padlen, SPACER);
+    	printf("|  %s%*.*s ", e->vettEq[i]->type, padlen, padlen, SPACER);
     }
     printf("\n");
     for(int i = 0; i < len; i++)
-    	printf(" %.*s ", widths[i], SEPARATOR);
+    	printf("|  %.*s ", widths[i], SEPARATOR);
 	printf("\n");
 }
 
 void printCharacterStats(Character character){
 	printf("| > %s\n"
-         "%s \nClass:%s\tEquipment:\n",
+         "| %s \n| Class:%s\tEquipment:\n",
          character.code, character.name, character.type);
     printEquipment(character.equip);
     Stats stats = calcStats(character);
-    printf("Stats:\n  hp:%.3d mp:%.3d atk:%.3d def:%.3d mag:%.3d spr:%.3d\n",
+    printf("| Stats:\n| hp:%.3d mp:%.3d atk:%.3d def:%.3d mag:%.3d spr:%.3d\n",
            stats.hp>0?stats.hp:0,
            stats.mp>0?stats.mp:0,
            stats.atk>0?stats.atk:0,
@@ -204,9 +277,13 @@ void printAvailableInventory(Inventory inventory){
 }
 
 void printAvailableCharacters(Playable_Characters list){
+	printf("Available characters:\n");
 	if(list->len > 0)
 		for(Link head = list->head->next; head != NULL; head = head->next){
-        	printCharacterStats(head->character);
+			if (!isNullCharacter(head->character)) {
+				printCharacterStats(head->character);
+				printf("\n");
+			}
 		}
 }
 
