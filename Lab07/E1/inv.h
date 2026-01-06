@@ -7,6 +7,9 @@
 
 #define LEN 100
 #define MIN_STAT 1
+#define SEPARATOR "----------------------------------------------------"
+#define SPACER "                                 "
+#define LN_LEN 50
 
 /* quasi ADT statistiche */
 typedef struct stat_s {

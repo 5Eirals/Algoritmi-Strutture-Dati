@@ -23,7 +23,7 @@ void printNeckless(Neckless neckless);
 Neckless newNeckless(Neckless New);
 
 int main() {
-    char* path = "Lab04/E3/easy_test_set.txt";
+    char* path = "Lab04/E3/very_easy_test_set.txt";
     int N;
     Neckless* total;
     total = readNeckless(total, path, &N);

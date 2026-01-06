@@ -19,11 +19,10 @@ void merge(att* V, int start, int middle, int end);
 
 int main(){
 	int N;
-	char* path = "Lab06/E1/att1.txt";
+	char* path = "Lab06/E1/att.txt";
 	att* V = readActivities(path, &N);
 
-	//printActivities(V, N);
-	//MSortActivities(V, N);
+	MSortActivities(V, N);
 	printActivities(V, N);
 	selectActivitiesDP(V, N);
 
@@ -133,43 +132,3 @@ void mergeSort(att arr[], int left, int right) {
 		merge(arr, left, mid, right);
 	}
 }
-
-// void mergeSort(att* V, int start, int end) {
-// 	if (start >= end)	return;
-// 	printf("merge sort %d %d\n", start, end);
-// 	int middle = start + (end-start) / 2;
-// 	mergeSort(V, start, middle);
-// 	mergeSort(V, middle+1, end);
-// 	merge(V, start, middle, end);
-// }
-//
-// void merge(att* V, int start, int middle, int end) {
-// 	printf("merge arrays\n");
-// 	att* Buffer = (att*)malloc((end - start + 1) * sizeof(att));
-// 	int i = start, j = middle +1, b = 0;
-// 	for (int k = start; k <= end; k++)
-// 		printf("(%d, %d) ", V[i].start, V[i].end);
-// 	printf("\n");
-// 	for (int k = start; k <= end; k++) {
-// 		if (j > end) {
-// 			Buffer[b++] = V[i++];
-// 		} else if (i > middle){
-// 			Buffer[b++] = V[j++];
-// 		} else if (V[i].start > V[j].start) {
-// 			Buffer[b++] = V[j++];
-// 		} else {
-// 			Buffer[b++] = V[i++];
-// 		}
-// 	}
-//
-// 	for (int k = 0; k < b; k++)
-// 		printf("(%d, %d) ", Buffer[i].start, Buffer[i].end);
-// 	printf("\n");
-//
-// 	for (int k = start; k <= end; k++) {
-// 		V[k] = Buffer[b-k];
-// 	}
-// 	printActivities(V, end);
-// 	free(Buffer);
-// 	return;
-// }

@@ -1,6 +1,5 @@
 #ifndef PG_H_DEFINED
 #define PG_H_DEFINED
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -28,5 +27,6 @@ di fatto e' sufficiente chiamare l'opportuna funzione dal modulo equipArray */
 void pg_updateEquip(pg_t *pgp, invArray_t invArray);
 
 /* Si possono aggiungere altre funzioni se ritenute necessarie */
+void pg_copy(pg_t* dest, pg_t* src);
 
 #endif

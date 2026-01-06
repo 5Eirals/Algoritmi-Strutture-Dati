@@ -7,9 +7,6 @@
 
 #include "inv.h"
 
-#define SEPARATOR "----------------------------------------------------"
-#define SPACER "                                 "
-#define LN_LEN 50
 #define MAX_LEN 100
 
 /* ADT di prima classe collezione di oggetti di inventario */
