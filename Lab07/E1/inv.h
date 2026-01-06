@@ -15,8 +15,8 @@ typedef struct stat_s {
 
 /* quasi ADT oggetto di inventario */
 typedef struct inv_s {
-  char nome[LEN];
-  char tipo[LEN];
+  char name[LEN];
+  char type[LEN];
   stat_t stat;
 } inv_t;
 
