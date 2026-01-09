@@ -42,7 +42,7 @@ ST STinit(){
 	ST st = (ST) malloc(sizeof(st_t));
     st->len = 0;
     st->maxSize = 2;
-    st->keys = (str*) malloc(sizeof(str) * st->maxSize);
+    st->keys = (vertex*) malloc(sizeof(vertex) * st->maxSize);
 	return st;
 }
 
@@ -97,13 +97,13 @@ str STgetValue(ST st, int key){
 	return st->keys[key].id;
 }
 
-static int search(str* arr, str target, int start, int end){
+static int search(vertex* arr, str target, int start, int end){
 	int mid = start + (end - start) / 2;
     if(end < start || start > end)
     	return -1;
     if(arr[mid] == target)
     	return mid;
-    else if(strcmp(arr[mid], target) < 0)
+    else if(strcmp(arr[mid].id, target) < 0)
     	return search(arr, target, start, mid - 1);
     else
       return search(arr, target, mid + 1, end);

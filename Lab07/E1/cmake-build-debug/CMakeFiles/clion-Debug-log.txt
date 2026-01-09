@@ -5,6 +5,6 @@
 -- Check for working C compiler: C:/msys64/mingw64/bin/cc.exe - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
--- Configuring done (1.5s)
+-- Configuring done (1.6s)
 -- Generating done (0.0s)
 -- Build files have been written to: C:/Users/Emanuele/CLionProjects/Algoritmi-Strutture-Dati/Lab07/E1/cmake-build-debug
