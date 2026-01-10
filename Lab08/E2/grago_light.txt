@@ -1,4 +1,0 @@
-Uriel Net3 Bahamut Net2 99
-Uriel Net3 Igni Net0 45
-Igni Net0 Tatooine Net1 67
-Tatooine Net1 Bahamut Net2 33
