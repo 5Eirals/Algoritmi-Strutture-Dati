@@ -100,7 +100,6 @@ void graph_print(FILE* f, graph g){
 
 void graph_read(FILE *f, graph g) {
 	graph_loadST(f, g);
-	STprint(stdout, g->ST);
 	graph_createAdjMatr(f, g);
 }
 

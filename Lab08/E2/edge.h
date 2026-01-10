@@ -3,8 +3,6 @@
 
 #include "stdsymb.h"
 
-#define MAX_SIZE 128
-
 typedef struct edge_s *edge;
 
 
