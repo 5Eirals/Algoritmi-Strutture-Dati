@@ -1,0 +1,26 @@
+[
+{
+  "directory": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.1\\bin\\mingw\\bin\\gcc.exe -g -std=gnu11 -fdiagnostics-color=always -o CMakeFiles\\L09E01.dir\\l09e01.c.obj -c C:\\Users\\emanu\\CLionProjects\\Algoritmi-Strutture-Dati\\Lab09\\l09e01.c",
+  "file": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/l09e01.c",
+  "output": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug/CMakeFiles/L09E01.dir/l09e01.c.obj"
+},
+{
+  "directory": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.1\\bin\\mingw\\bin\\gcc.exe -g -std=gnu11 -fdiagnostics-color=always -o CMakeFiles\\L09E01.dir\\graph.c.obj -c C:\\Users\\emanu\\CLionProjects\\Algoritmi-Strutture-Dati\\Lab09\\graph.c",
+  "file": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/graph.c",
+  "output": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug/CMakeFiles/L09E01.dir/graph.c.obj"
+},
+{
+  "directory": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.1\\bin\\mingw\\bin\\gcc.exe -g -std=gnu11 -fdiagnostics-color=always -o CMakeFiles\\L09E01.dir\\st.c.obj -c C:\\Users\\emanu\\CLionProjects\\Algoritmi-Strutture-Dati\\Lab09\\st.c",
+  "file": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/st.c",
+  "output": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug/CMakeFiles/L09E01.dir/st.c.obj"
+},
+{
+  "directory": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.1\\bin\\mingw\\bin\\gcc.exe -g -std=gnu11 -fdiagnostics-color=always -o CMakeFiles\\L09E01.dir\\edge.c.obj -c C:\\Users\\emanu\\CLionProjects\\Algoritmi-Strutture-Dati\\Lab09\\edge.c",
+  "file": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/edge.c",
+  "output": "C:/Users/emanu/CLionProjects/Algoritmi-Strutture-Dati/Lab09/cmake-build-debug/CMakeFiles/L09E01.dir/edge.c.obj"
+}
+]
