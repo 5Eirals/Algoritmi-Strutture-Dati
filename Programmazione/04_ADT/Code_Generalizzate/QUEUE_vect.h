@@ -1,8 +1,14 @@
-//
-// Created by emanu on 28/08/2026.
-//
+#include <stdlib.h>
 
-#ifndef ALGORITMI_STRUTTURE_DATI_QUEUE_VECT_H
-#define ALGORITMI_STRUTTURE_DATI_QUEUE_VECT_H
+typedef struct item_s {
+    int key;
+    int val;
+} item_t, *Item;
+typedef int Key;
 
-#endif // ALGORITMI_STRUTTURE_DATI_QUEUE_VECT_H
+typedef struct queue_s queue_t, *QUEUE;
+
+QUEUE QUEUEinit(int maxN);
+void QUEUEput(QUEUE q, item_t item);
+item_t QUEUEget(QUEUE q);
+int QUEUEempty(QUEUE q);
